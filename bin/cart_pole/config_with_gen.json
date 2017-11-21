@@ -1,0 +1,17 @@
+{
+	"gen":
+	{
+		"theta":
+		{
+			"start": 5.0,
+			"step": 1.0,
+			"count": 3
+		},
+		"pos":
+		{
+			"start": 0.1,
+			"step": 0.1,
+			"count": 10
+		}
+	}
+}

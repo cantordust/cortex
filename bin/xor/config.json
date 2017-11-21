@@ -1,0 +1,69 @@
+{
+    "ecosystem":
+    {
+        "init":
+        {
+            "size" : 50
+        },
+        "max":
+        {
+            "age" :  100,
+            "size": 150
+        }
+    },
+    "species" :
+    {
+    	"init" :
+    	{
+    		"count" : 1
+    	}
+    },
+    "net" :
+    {
+    	"max" :
+    	{
+    		"age" : 0
+    	}
+    },
+    "node":
+    {
+        "roles":
+        {
+            "b": 0,
+            "i": 2,
+            "o": 1,
+            "h": 0
+        }
+    },
+	"link" :
+	{
+		"rec" : false,
+		"weight" :
+		{
+			"sd": 2.0
+		}
+	},
+	"mating" :
+	{
+		"rate" : 0.20
+	},
+    "mut" :
+    {
+    	"prob":
+    	{
+    		"add_node" : 10,
+    		"erase_node" : 10,
+    		"add_link" : 50,
+    		"erase_link" : 50,
+    		"weight" : 1000,
+    		"tau" : 0,
+    		"fn" : 0
+    	}
+    },
+    "fit" :
+    {
+        "tgt" : 4.0
+    },
+    "threads" : 10,
+    "runs" : 100
+}

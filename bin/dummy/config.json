@@ -1,0 +1,38 @@
+{
+    "ecosystem":
+    {
+        "init":
+        {
+            "size" : 20
+        },
+        "max":
+        {
+            "age" :  30,
+            "size": 50
+        }
+    },
+    "node":
+    {
+        "roles":
+        {
+            "b": 0,
+            "i": 5,
+            "o": 3,
+            "h": 0
+        }
+    },
+    "mut":
+    {
+    	"prob":
+    	{
+    		"add_node" : 50,
+    		"erase_node" : 50
+    	}
+    },
+    "fit" :
+    {
+        "tgt" : 2.8
+    },
+    "threads" : 10,
+    "runs" : 10
+}
