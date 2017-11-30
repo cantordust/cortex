@@ -6,6 +6,9 @@
 
 namespace Cortex
 {
+
+	using uint = unsigned int;
+
 	/// Network types
 	enum class NT : uint
 	{
