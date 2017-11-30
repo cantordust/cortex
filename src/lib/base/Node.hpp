@@ -23,18 +23,32 @@ namespace Cortex
 		}
 	};
 
+	struct Spike
+	{
+		real time = 0.0;
+		NodeID src = {NR::Undef, 0};
+	};
+
+	struct Event
+	{
+		real time = 0.0;
+		LinkRef link;
+	};
+
+	using Scheduler = std::deque<Spike>;
+
 	class Node
 	{
 	public:
 
 		NodeID id;
 
-		Config& cfg;
+		ConfigRef cfg;
 
 		real output;
 
-		/// Helper enum class for topological sorting
-		Mark mark;
+		// Helper enum class for topological sorting
+		NodeMark mark;
 
 	private:
 
@@ -44,31 +58,36 @@ namespace Cortex
 
 		Activation af;
 
-		Param tau;
-
 		std::vector<real> input;
 
-		/// Gaussian receptive field
-		/// \todo: Generic receptive field class.
+		// Time constant
+		Param tau;
+
+		// Gaussian receptive field
+		// @todo Generic receptive field class.
 		GRF grf;
 
-		/// The current activation level
-		real al;
+		// Used in SNN
+		struct
+		{
+			// Incoming spike events
+			std::vector<Event> in;
 
-		/// Hyperpolarisation level.
-		/// This should be lower than the resting potential.
-		real hl;
+			// Relative timing of the last outbound spike
+			struct
+			{
+				real time = 0.0;
+			} out;
 
-		/// The last time this node received an input.
-		real last_input;
-
-		/// The last time this node spiked
-		real last_spike;
+			// Difference of spike event time and last outward spike time
+			real t_stdp = 0.0;
+		} spikes;
 
 		friend class Net;
-		friend std::ostream& operator<< (std::ostream&, const Net&);
 		friend class Link;
 		friend class Links;
+
+		friend std::ostream& operator<< (std::ostream&, const Net&);
 
 	public:
 
@@ -97,56 +116,19 @@ namespace Cortex
 			return link_count(LT::F) + link_count(LT::R);
 		}
 
-		/// Classical network
-		inline void eval()
-		{
-			output = af.eval(input);
-		}
-
-		/// Spiking network
-		inline void eval(const real& _cur_time, const real& _input)
-		{
-			/// Compute the current activation level
-			/// based on the last evaluation time.
-			if (cfg.node.lif)
-			{
-				al *= std::exp( -(_cur_time - last_input) / tau.val() );
-			}
-
-			al += _input;
-			last_input = _cur_time;
-
-			if ( al >= 1.0 )
-			{
-				al = 0.0;
-				last_spike = _cur_time;
-			}
-		}
-
 		inline void add_input(const real _val)
 		{
 			input.push_back(_val);
 		}
 
-		inline void set_grf(const uint _N,
-							const uint _i,
-							const real _beta,
-							const real _i_min,
-							const real _i_max)
+		inline void set_grf(const uint _idx)
 		{
-			grf = GRF(_N, _i, _beta, _i_min, _i_max);
+			grf = GRF(cfg, _idx);
 		}
 
 		inline real get_grf_delay(const real _input)
 		{
-			return grf.get_delay(_input);
-		}
-
-		bool mutate(const Mut _mut);
-
-		inline real get_last_spike_time() const
-		{
-			return last_spike;
+			return grf.convert(_input);
 		}
 
 		inline bool set_fn(const Fn _fn)
@@ -155,58 +137,33 @@ namespace Cortex
 			return true;
 		}
 
-		inline void set_last_spike_time(const real _t)
-		{
-			last_spike = _t;
-		}
-
 		inline void propagate()
 		{
-			/// First get all input from recurrent links
-			if (cfg.link.rec)
+			// First get all input from recurrent links
+			if (cfg.get().link.rec)
 			{
-				get_rec();
+				propagate_rec();
 			}
 
-			/// Evaluate the node
+			// Evaluate the node
 			eval();
 
-			/// Propagate the output
+			// Propagate the output
 			if (output != 0.0)
 			{
 				for (auto& role : links.targets.at(LT::F))
 				{
 					for (auto& link : role.second)
 					{
-						link.second->tgt.add_input(output * link.second->weight.val());
+						link.second->tgt.add_input(output * link.second->weight.cur());
 					}
 				}
 			}
 
-			/// Clear the input vector in preparation
-			/// for the next evaluation
+			// Clear the input vector in preparation
+			// for the next evaluation
 			input.clear();
 		}
-
-		inline void get_rec()
-		{
-			for (auto& role : links.sources.at(LT::R))
-			{
-				for (auto& link : role.second)
-				{
-					if (link.second.get().src.output != 0.0)
-					{
-						add_input(link.second.get().src.output * link.second.get().weight.val());
-					}
-				}
-			}
-		}
-
-		bool visit(const bool _update_graph);
-
-		void connect();
-
-		void crossover(Node& _n1, Node& _n2, const hmap<uint, real>& _fdist);
 
 		inline bool has_targets(const LT _lt) const
 		{
@@ -280,9 +237,8 @@ namespace Cortex
 			return is_src(LT::F, _id) || is_src(LT::R, _id);
 		}
 
-		inline bool link_allowed(const LT _lt, Node& _tgt)
+		inline bool is_link_allowed(const LT _lt, Node& _tgt)
 		{
-
 			switch (_lt)
 			{
 			case LT::F:
@@ -296,7 +252,7 @@ namespace Cortex
 			}
 		}
 
-		inline bool link_eraseable(const LT _lt, Node& _tgt) const
+		inline bool is_link_eraseable(const LT _lt, Node& _tgt) const
 		{
 			switch (_lt)
 			{
@@ -313,8 +269,6 @@ namespace Cortex
 			}
 		}
 
-		bool forms_cycle(Node& _tgt);
-
 		inline Link& get_tgt_link(const LT _lt, const NodeID& _id)
 		{
 			return *links.targets.at(_lt).at(_id.role).at(_id.idx);
@@ -327,26 +281,17 @@ namespace Cortex
 
 		inline void add_link(const LT _lt, Node& _tgt)
 		{
-			//		dlog d;
-			//		d << "*** Adding " << _lt << " link " << id << "->" << _tgt.id << "...";
 			links.add(_lt, *this, _tgt, cfg);
-			//		d << "success!";
 		}
 
 		inline void add_link(const LT _lt, Node& _tgt, Link& _other)
 		{
-			//		dlog d;
-			//		d << "*** Copying " << _lt << " link " << id << "->" << _tgt.id << "...";
 			links.add(_lt, *this, _tgt, _other);
-			//		d << "success!";
 		}
 
 		inline void erase_link(const LT _lt, const NodeID& _id)
 		{
-			//		dlog d;
-			//		d << "*** Erasing " << _lt << " link " << id << "->" << _id << "...";
 			links.erase(_lt, _id);
-			//		d << "success!";
 		}
 
 		inline void reindex(const NodeID& _id)
@@ -356,15 +301,51 @@ namespace Cortex
 
 		void disconnect();
 
-		friend std::ostream& operator<< (std::ostream& _strm, const Node& _node)
-		{
-			_strm << _node.id;
-			return _strm;
-		}
+		void connect();
+
+		void crossover(Node& _n1, Node& _n2, const hmap<uint, real>& _fdist);
+
+		// Classical version
+		void eval_classical();
+
+		// Spiking version
+		void eval_time(const Event& _ev);
+
+		bool mutate(const Mut _mut);
+
+		friend std::ostream& operator<< (std::ostream& _strm, const Node& _node);
 
 	private:
 
+		inline void propagate_rec()
+		{
+			for (auto& role : links.sources.at(LT::R))
+			{
+				for (auto& link : role.second)
+				{
+					if (link.second.get().src.output != 0.0)
+					{
+						add_input(link.second.get().src.output * link.second.get().weight.cur());
+					}
+				}
+			}
+		}
 
+		bool visit(const bool _update_graph);
+
+		bool forms_cycle(Node& _tgt);
+
+		bool mutate_weight();
+
+		bool mutate_tau();
+
+		bool mutate_af();
+
+		void stdp_classical();
+
+		void stdp_pre_spike(const real _t_diff);
+
+		void stdp_post_spike(const real _t_diff);
 	};
 }
 

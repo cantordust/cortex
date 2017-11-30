@@ -9,8 +9,8 @@ namespace Cortex
 	{
 	private:
 
-		/// Threads containing ecosystems.
-		/// Used by setup() and run().
+		// Threads containing ecosystems.
+		// Used by setup() and run().
 		std::vector<std::thread> ecosystems;
 
 	public:
@@ -49,9 +49,9 @@ namespace Cortex
 						if ( es.is_solved() )
 						{
 							++successes;
-							evals.push_back(es.total_evals());
+							evals.push_back(es.get_total_evals());
 							gens.push_back(es.get_age());
-							hidden_nodes.push_back(es.champ().node_count(NR::H));
+							hidden_nodes.push_back(es.get_champ().get_node_count(NR::H));
 
 							break;
 						}

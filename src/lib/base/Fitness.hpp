@@ -11,14 +11,15 @@ namespace Cortex
 
 		Config& cfg;
 
+		// Generic statistics including the current value
 		Stat stat;
 
-		/// The effect of the last mutation.
-		/// Used for trend tracking.
+		// The effect of the last mutation.
+		// Used for trend tracking.
 		Eff eff;
 
-		/// The parameters which were mutated
-		/// in the last round of evolution.
+		// Parameters mutated in the
+		// last round of evolution.
 		std::vector<ParamRef> params;
 
 	public:
@@ -37,17 +38,17 @@ namespace Cortex
 
 		inline real progress() const
 		{
-			return stat.progress();
+			return stat.get_progress();
 		}
 
-		inline real get_abs() const
+		inline real get_cur() const
 		{
 			return stat.abs;
 		}
 
-		void set_abs(const real _abs_fit);
+		void set_cur(const real _cur);
 
-		inline real diff() const
+		inline real get_diff() const
 		{
 			return stat.diff;
 		}

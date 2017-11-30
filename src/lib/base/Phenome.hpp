@@ -18,7 +18,7 @@ namespace Cortex
 		emap<uint, Mark> marks;
 		std::vector<uint> graph;
 
-		///	Lookup tables for forward and recurrent links
+		//	Lookup tables for forward and recurrent links
 		emap<LT, LinkLUT> tables;
 
 		inline bool visit(const uint _node,
@@ -30,7 +30,7 @@ namespace Cortex
 				switch (marks.at(_node))
 				{
 					case Mark::Perm: return true;
-					case Mark::Temp: return false; /// Not a DAG
+					case Mark::Temp: return false; // Not a DAG
 				}
 			}
 			else
@@ -93,10 +93,10 @@ namespace Cortex
 
 		inline void erase_node(const uint _nrn_id)
 		{
-			/// Adjust the IDs of nodes with IDs *higher*
-			/// than that of the node to be deleted.
-			/// ltype.first = LT
-			/// ltype.second = LinkLUT
+			// Adjust the IDs of nodes with IDs *higher*
+			// than that of the node to be deleted.
+			// ltype.first = LT
+			// ltype.second = LinkLUT
 			for (auto& ltype : tables)
 			{
 				LinkLUT& lut(ltype.second);
@@ -117,10 +117,10 @@ namespace Cortex
 					}
 				}
 
-				/// Erase the node.
+				// Erase the node.
 				lut.erase(_nrn_id);
 
-				/// Shift node IDs down by 1.
+				// Shift node IDs down by 1.
 				for (auto it = lut.find(_nrn_id + 1); it != lut.end(); )
 				{
 					lut[it->first - 1] = it->second;
@@ -174,7 +174,7 @@ namespace Cortex
 
 		inline uint link_count(const LT _lt) const
 		{
-			/// Sum links
+			// Sum links
 			return std::accumulate(tables.at(_lt).begin(), tables.at(_lt).end(), 0, [](uint _sum, const auto& _it)
 			{
 				return _sum + _it.second.size();
@@ -218,8 +218,8 @@ namespace Cortex
 			}
 		}
 
-		/// Check if a path from one node to another already exists.
-		/// Used when trying to add a link which might turn out to be recurrent.
+		// Check if a path from one node to another already exists.
+		// Used when trying to add a link which might turn out to be recurrent.
 		inline bool forms_cycle(const uint _src, const uint _tgt)
 		{
 			add_link(LT::F, _src, _tgt);
@@ -231,8 +231,8 @@ namespace Cortex
 			return cycle;
 		}
 
-		/// Topologically sorted graph constructed
-		/// using depth-first search
+		// Topologically sorted graph constructed
+		// using depth-first search
 		inline bool make_graph(const bool _update_graph = true)
 		{
 			if (_update_graph)
@@ -250,8 +250,8 @@ namespace Cortex
 				}
 			}
 
-			/// The graph is constructed backwards,
-			/// so we need to reverse it.
+			// The graph is constructed backwards,
+			// so we need to reverse it.
 			if (_update_graph &&
 				!graph.empty())
 			{

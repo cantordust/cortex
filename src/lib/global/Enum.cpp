@@ -86,13 +86,14 @@ namespace Cortex
 
 	template<> EnumMap<Enc> Enum<Enc>::entries =
 	{
-		{Enc::Lat, "lat"},
-		{Enc::Rank, "rank"}
+		{Enc::Time, "time"},
+		{Enc::RankOrder, "rank_order"}
 	};
 	template<> Enc Enum<Enc>::undef = Enc::Undef;
 
 	template<> EnumMap<RF> Enum<RF>::entries =
 	{
+		{RF::Direct, "direct"},
 		{RF::ARF, "arf"},
 		{RF::GRF, "grf"},
 		{RF::ST, "st"}
@@ -106,4 +107,34 @@ namespace Cortex
 	};
 	template<> Search Enum<Search>::undef = Search::Undef;
 
+	template<> EnumMap<NodeMark> Enum<NodeMark>::entries =
+	{
+		{NodeMark::Temp, "temp"},
+		{NodeMark::Perm, "perm"}
+	};
+	template<> NodeMark Enum<NodeMark>::undef = NodeMark::Undef;
+
+	template<> EnumMap<InitDist> Enum<InitDist>::entries =
+	{
+		{InitDist::Fixed, "fixed"},
+		{InitDist::Normal, "normal"},
+		{InitDist::Uniform, "uniform"}
+	};
+	template<> InitDist Enum<InitDist>::undef = InitDist::Undef;
+
+	template<> EnumMap<MAType> Enum<MAType>::entries =
+	{
+		{MAType::Simple, "simple"},
+		{MAType::WMA, "wma"},
+		{MAType::EMA, "ema"}
+	};
+	template<> MAType Enum<MAType>::undef = MAType::Undef;
+
+	template<> EnumMap<Topology> Enum<Topology>::entries =
+	{
+		{Topology::Random, "random"},
+		{Topology::Layered, "layered"},
+		{Topology::Conv, "conv"}
+	};
+	template<> Topology Enum<Topology>::undef = Topology::Undef;
 }

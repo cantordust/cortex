@@ -12,7 +12,7 @@ namespace CartPole
 
 	void eval(Net& _net);
 
-	uint eval_env(Net& _net, const Env& _env, std::vector<std::string>& _histograms, bool _add_hist = false);
+	uint eval_env(Net& _net, const Track& _env, std::vector<std::string>& _histograms, bool _add_hist = false);
 
 	void to_csv(const std::vector<std::string>& _histograms);
 
@@ -28,8 +28,8 @@ namespace CartPole
 
 	void test();
 
-	/// Random track based on the default track
-	Env def_env();
+	// Random track based on the default track
+	Track def_env();
 }
 
 #endif // EVAL_HPP

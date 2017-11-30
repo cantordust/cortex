@@ -17,10 +17,10 @@ namespace CartPole
 	real Cart::Def::k_r = 0.0;
 	real Cart::Def::tfc = 0.0005;
 
-	real Env::Def::track_len = 4.8;
-	bool Env::Def::with_vel = true;
-	bool Env::Def::coupled = false;
-	std::vector<real> Env::Def::ks = {};
+	real Track::Def::track_len = 4.8;
+	bool Track::Def::with_vel = true;
+	bool Track::Def::coupled = false;
+	std::vector<real> Track::Def::ks = {};
 
 	void to_csv(const std::vector<std::string>& _histograms)
 	{
@@ -41,11 +41,11 @@ namespace CartPole
 		std::vector<std::string> histograms;
 		uint steps(0);
 
-		/// Initialise with random cart position and pole angles
-		Env env(def_env());
+		// Initialise with random cart position and pole angles
+		Track env(def_env());
 		env.init();
 
-		/// Evaluate the network and set the fitness
+		// Evaluate the network and set the fitness
 		steps = eval_env(_net, env, histograms);
 
 		if (steps >= Max::steps)
@@ -57,7 +57,7 @@ namespace CartPole
 			uint gen_steps(0);
 			bool champ(true);
 
-			for (const Env& gen_env : Gen::envs)
+			for (const Track& gen_env : Gen::tracks)
 			{
 				gen_steps = eval_env(_net, gen_env, histograms, true);
 				steps += gen_steps;
@@ -85,14 +85,14 @@ namespace CartPole
 		_net.set_abs_fitness(steps);
 	}
 
-	uint eval_env(Net& _net, const Env& _env, std::vector<std::string>& _histograms, bool _add_hist)
+	uint eval_env(Net& _net, const Track& _env, std::vector<std::string>& _histograms, bool _add_hist)
 	{
 		uint steps(0);
-		Env env(_env);
+		Track env(_env);
 		std::stringstream hist;
 		std::vector<real> actions(_net.get_output().size());
 
-		/// Evaluate the network
+		// Evaluate the network
 		while (steps <= Max::steps &&
 			   env.in_range())
 		{
@@ -121,10 +121,10 @@ namespace CartPole
 
 	bool load_gen(const json& _gen, std::vector<real>& _vec)
 	{
-		/// Check if the JSON actually contains something
+		// Check if the JSON actually contains something
 		if (_gen.size() > 0)
 		{
-			/// Load the settings
+			// Load the settings
 			real start(0.0);
 			real step(0.0);
 			uint count(0);
@@ -137,7 +137,7 @@ namespace CartPole
 			load(_gen, "pos", pos);
 			load(_gen, "neg", neg);
 
-			/// Sanity check
+			// Sanity check
 			if (count == 0 ||
 				step == 0.0 ||
 				!(pos || neg))
@@ -145,7 +145,7 @@ namespace CartPole
 				return false;
 			}
 
-			/// Clear the container
+			// Clear the container
 			_vec.clear();
 
 			real val(0.0);
@@ -199,36 +199,36 @@ namespace CartPole
 			problems << "\t- Invalid max steps (" << Max::steps << ").\n";
 		}
 
-		/// Default environment parameters
+		// Default environment parameters
 		_config.load("custom.def.env.g", g);
 		if (g >= 0.0)
 		{
 			problems << "\t- Invalid gravitational acceleration (" << g << ").\n";
 		}
 
-		_config.load("custom.def.env.track_len", Env::Def::track_len);
-		if (Env::Def::track_len <= 0.0)
+		_config.load("custom.def.env.track_len", Track::Def::track_len);
+		if (Track::Def::track_len <= 0.0)
 		{
-			problems << "\t- Invalid track length (" << Env::Def::track_len << ").\n";
+			problems << "\t- Invalid track length (" << Track::Def::track_len << ").\n";
 		}
-		Max::pos = Env::Def::track_len / 2.0;
+		Max::pos = Track::Def::track_len / 2.0;
 
-		_config.load("custom.def.env.with_vel", Env::Def::with_vel);
-		_config.load("custom.def.env.coupled", Env::Def::coupled);
-		if (Env::Def::coupled)
+		_config.load("custom.def.env.with_vel", Track::Def::with_vel);
+		_config.load("custom.def.env.coupled", Track::Def::coupled);
+		if (Track::Def::coupled)
 		{
-			_config.load("custom.def.env.ks", Env::Def::ks);
-			for (uint i = 0; i < Env::Def::ks.size(); ++i)
+			_config.load("custom.def.env.ks", Track::Def::ks);
+			for (uint i = 0; i < Track::Def::ks.size(); ++i)
 			{
-				if (Env::Def::ks.at(i) <= 0.0)
+				if (Track::Def::ks.at(i) <= 0.0)
 				{
 					problems << "\t- Invalid coefficient for spring " << (i + 1)
-							 << " (" << Env::Def::ks.at(i) << ").\n";
+							 << " (" << Track::Def::ks.at(i) << ").\n";
 				}
 			}
 		}
 
-		/// Default cart parameters
+		// Default cart parameters
 		_config.load("custom.def.cart.pos", Cart::Def::pos);
 		_config.load("custom.def.cart.vel", Cart::Def::vel);
 		_config.load("custom.def.cart.mass", Cart::Def::mass);
@@ -246,7 +246,7 @@ namespace CartPole
 			problems << "\t- Invalid default track friction coefficient (" << Cart::Def::tfc << ").\n";
 		}
 
-		/// Default pole parameters
+		// Default pole parameters
 		_config.load("custom.def.pole.theta", Pole::Def::theta);
 		_config.load("custom.def.pole.omega", Pole::Def::omega);
 		_config.load("custom.def.pole.mass", Pole::Def::mass);
@@ -268,17 +268,17 @@ namespace CartPole
 			problems << "\t- Invalid default hinge friction coefficient (" << Pole::Def::hfc << ").\n";
 		}
 
-		/// Load the defaults into static vars
+		// Load the defaults into static vars
 		std::vector<Cart>& carts(def_carts());
 
-		/// Check that we have at least one cart...
+		// Check that we have at least one cart...
 		json json_carts(_config["custom.env.carts"]);
 		if (json_carts.size() == 0)
 		{
 			problems << "\t- No carts defined.\n";
 		}
 
-		/// ...with at least one pole *each*
+		// ...with at least one pole *each*
 		uint cart_count(1);
 		for (const auto& json_cart : json_carts)
 		{
@@ -299,7 +299,7 @@ namespace CartPole
 			return false;
 		}
 
-		/// Generalisation settings
+		// Generalisation settings
 		if (load_gen(_config["custom.gen.theta"], Gen::theta))
 		{
 			Gen::vars.push_back(Gen::Var::theta);
@@ -331,11 +331,11 @@ namespace CartPole
 			}
 		}
 
-		/// Compute target fitness
+		// Compute target fitness
 //		_config.fit.tgt = Max::steps * (1 + Gen::envs.size());
-		_config.fit.tgt = Max::steps * (Gen::envs.size());
+		_config.fit.tgt = Max::steps * (Gen::tracks.size());
 
-		dlog() << "Generalisation environments: " << Gen::envs.size()
+		dlog() << "Generalisation environments: " << Gen::tracks.size()
 			   << "\nTarget fitness: " << _config.fit.tgt;
 
 		return _config.validate();
@@ -399,7 +399,7 @@ namespace CartPole
 
 		dlog d;
 
-		Env env(def_env());
+		Track env(def_env());
 
 		d << "\nRandom env:\n" << env;
 
@@ -417,18 +417,18 @@ namespace CartPole
 //		}
 
 		d << "\nGeneralisation envs:\n";
-		for (const Env& env : Gen::envs)
+		for (const Track& env : Gen::tracks)
 		{
 			d << env;
 		}
 	}
 
-	Env def_env()
+	Track def_env()
 	{
-		/// Create a new environment
-		Env env;
+		// Create a new environment
+		Track env;
 
-		/// Add the preloaded carts
+		// Add the preloaded carts
 		for (const Cart& cart : def_carts())
 		{
 			env.add_cart(cart);
@@ -441,19 +441,19 @@ namespace CartPole
 
 	void populate_gen(const std::vector<real>& _values, const Gen::Var _var)
 	{
-		if (Gen::envs.empty())
+		if (Gen::tracks.empty())
 		{
-			Env env;
+			Track env;
 			for (Cart& cart : def_carts())
 			{
 				env.add_cart(cart);
 			}
-			Gen::envs.emplace_back(env);
+			Gen::tracks.emplace_back(env);
 		}
 
-		std::vector<Env> tmp_envs;
+		std::vector<Track> tmp_envs;
 
-		for (Env& gen_env : Gen::envs)
+		for (Track& gen_env : Gen::tracks)
 		{
 			for (const real value : _values)
 			{
@@ -462,7 +462,7 @@ namespace CartPole
 				case Gen::Var::pos:
 					for (uint i = 0; i < gen_env.get_carts().size(); ++i)
 					{
-						Env env(gen_env);
+						Track env(gen_env);
 						env.get_carts().at(i).set(Cart::Var::pos, value);
 						tmp_envs.push_back(env);
 					}
@@ -470,7 +470,7 @@ namespace CartPole
 				case Gen::Var::vel:
 					for (uint i = 0; i < gen_env.get_carts().size(); ++i)
 					{
-						Env env(gen_env);
+						Track env(gen_env);
 						env.get_carts().at(i).set(Cart::Var::vel, value);
 						tmp_envs.push_back(env);
 					}
@@ -480,7 +480,7 @@ namespace CartPole
 					{
 						for (uint j = 0; j < gen_env.get_carts().at(i).get_poles().size(); ++j)
 						{
-							Env env(gen_env);
+							Track env(gen_env);
 							env.get_carts().at(i).get_poles().at(j).set(Pole::Var::omega, value);
 							tmp_envs.push_back(env);
 						}
@@ -491,7 +491,7 @@ namespace CartPole
 					{
 						for (uint j = 0; j < gen_env.get_carts().at(i).get_poles().size(); ++j)
 						{
-							Env env(gen_env);
+							Track env(gen_env);
 							env.get_carts().at(i).get_poles().at(j).set(Pole::Var::theta, value);
 							tmp_envs.push_back(env);
 						}
@@ -501,6 +501,6 @@ namespace CartPole
 			}
 		}
 
-		Gen::envs = tmp_envs;
+		Gen::tracks = tmp_envs;
 	}
 }

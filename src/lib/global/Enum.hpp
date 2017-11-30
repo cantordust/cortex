@@ -6,7 +6,9 @@
 
 namespace Cortex
 {
-	/// Network types
+	using uint = unsigned int;
+
+	// Network types
 	enum class NT : uint
 	{
 		Undef,
@@ -14,7 +16,7 @@ namespace Cortex
 		Spiking
 	};
 
-	/// Node roles
+	// Node roles
 	enum class NR : uint
 	{
 		Undef,
@@ -24,7 +26,7 @@ namespace Cortex
 		H  // Hidden
 	};
 
-	/// Link types
+	// Link types
 	enum class LT : uint
 	{
 		Undef,
@@ -32,7 +34,7 @@ namespace Cortex
 		R
 	};
 
-	/// Function types
+	// Function types
 	enum class Fn : uint
 	{
 		Undef,
@@ -51,7 +53,7 @@ namespace Cortex
 		Golden
 	};
 
-	/// Mutation types
+	// Mutation types
 	enum class Mut : uint
 	{
 		Undef,
@@ -64,7 +66,7 @@ namespace Cortex
 		Fn
 	};
 
-	/// Optimisation types
+	// Optimisation types
 	enum class Opt : uint
 	{
 		Undef,
@@ -72,7 +74,7 @@ namespace Cortex
 		Anneal
 	};
 
-	/// Synaptic plasticity types
+	// Synaptic plasticity types
 	enum class STDP : uint
 	{
 		Undef,
@@ -80,10 +82,10 @@ namespace Cortex
 		AntiHeb
 	};
 
-	/// The following enums are used for values which can
-	/// increase, decrease or stay the same.
-	/// These are used to keep track of changes and decide
-	/// which changes have been beneficial and which haven't.
+	// The following enums are used for values which can
+	// increase, decrease or stay the same.
+	// These are used to keep track of changes and decide
+	// which changes have been beneficial and which haven't.
 	enum class Act : uint
 	{
 		Undef,
@@ -98,24 +100,25 @@ namespace Cortex
 		Dec
 	};
 
-	/// Spike encoding method
+	// Spike encoding method
 	enum class Enc : uint
 	{
 		Undef,
-		Lat, // Latency
-		Rank // Rank order encoding
+		Time, // Relative times
+		RankOrder // Rank order encoding
 	};
 
-	/// Receptive field types
+	// Receptive field types
 	enum class RF : uint
 	{
 		Undef,
+		Direct, // No receptive fields
 		ARF, // Adaptive
 		GRF, // Gaussian
 		ST // Spatiotemporal
 	};
 
-	/// Search modes
+	// Search mode
 	enum class Search : uint
 	{
 		Undef,
@@ -124,11 +127,38 @@ namespace Cortex
 		Novelty
 	};
 
-	enum class Mark : uint
+	// Helper variable used in topological sorting
+	enum class NodeMark : uint
 	{
-		None,
+		Undef,
 		Temp,
 		Perm
+	};
+
+	// Used in variable initialisation
+	enum class InitDist : uint
+	{
+		Undef,
+		Fixed,
+		Uniform,
+		Normal
+	};
+
+	// Moving average type.
+	enum class MAType : uint
+	{
+		Undef,
+		Simple, // Exact
+		WMA,	// Windowed MA
+		EMA		// Exponential MA
+	};
+
+	enum class Topology : uint
+	{
+		Undef,
+		Random,
+		Layered,
+		Conv
 	};
 
 	struct EnumHash
@@ -140,8 +170,8 @@ namespace Cortex
 		}
 	};
 
-	/// Unordered map and set capable of
-	/// taking enum class as a key.
+	// Unordered map and set capable of
+	// taking enum class as a key.
 	template<typename T1, typename T2> using emap = std::unordered_map<T1, T2, EnumHash>;
 
 	template<typename E> using EnumMap = emap<E, std::string>;
@@ -154,20 +184,17 @@ namespace Cortex
 	};
 
 	template<typename E, typename std::enable_if<std::is_enum<E>::value, E>::type ...>
-	static std::string as_str( const E _enum )
+	static std::string to_str( const E _enum )
 	{
-		for (const auto& entry : Enum<E>::entries )
+		if (Enum<E>::entries.find(_enum) != Enum<E>::entries.end())
 		{
-			if (entry.first == _enum)
-			{
-				return entry.second;
-			}
+			return Enum<E>::entries.at(_enum);
 		}
 		return "undef";
 	}
 
 	template<typename E, typename std::enable_if<std::is_enum<E>::value, E>::type ...>
-	static inline E as_enum( const std::string& _str )
+	static inline E to_enum( const std::string& _str )
 	{
 		for (const auto& entry : Enum<E>::entries)
 		{
@@ -183,7 +210,7 @@ namespace Cortex
 	template<typename E, typename std::enable_if<std::is_enum<E>::value, E>::type ...>
 	std::ostream& operator << (std::ostream& _strm, const E _e)
 	{
-		return _strm << as_str<E>(_e);
+		return _strm << to_str<E>(_e);
 	}
 
 	template<typename T> EnumMap<T> Enum<T>::entries;
@@ -224,6 +251,18 @@ namespace Cortex
 
 	template<> EnumMap<Search> Enum<Search>::entries;
 	template<> Search Enum<Search>::undef;
+
+	template<> EnumMap<NodeMark> Enum<NodeMark>::entries;
+	template<> NodeMark Enum<NodeMark>::undef;
+
+	template<> EnumMap<InitDist> Enum<InitDist>::entries;
+	template<> InitDist Enum<InitDist>::undef;
+
+	template<> EnumMap<MAType> Enum<MAType>::entries;
+	template<> MAType Enum<MAType>::undef;
+
+	template<> EnumMap<Topology> Enum<Topology>::entries;
+	template<> Topology Enum<Topology>::undef;
 }
 
 #endif // ENUM_HPP

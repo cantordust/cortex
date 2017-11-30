@@ -12,13 +12,13 @@ namespace Cortex
 		stat.window_size = std::floor(2.0 / stat.ema_coeff) - 1;
 	}
 
-	void Fitness::set_abs(const real _abs_fit)
+	void Fitness::set_cur(const real _cur)
 	{
-		if (_abs_fit > stat.abs)
+		if (_cur > stat.abs)
 		{
 			eff = Eff::Inc;
 		}
-		else if (_abs_fit < stat.abs)
+		else if (_cur < stat.abs)
 		{
 			eff = Eff::Dec;
 		}
@@ -26,7 +26,7 @@ namespace Cortex
 		{
 			eff = Eff::Undef;
 		}
-		stat.add(_abs_fit);
+		stat.update(_cur);
 		feedback();
 	}
 
@@ -52,8 +52,8 @@ namespace Cortex
 			break;
 		}
 
-		/// Increase the SD if we haven't made any progress
-		if (progress() <= 0.5)
+		// Increase the SD if we haven't made any progress
+		if (progress() <= 0.0)
 		{
 			for (auto&& param : params)
 			{

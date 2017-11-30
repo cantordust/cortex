@@ -6,7 +6,7 @@ namespace Dummy
 	{
 		dlog() << "Evaluating network " << _net.id;
 		std::vector<real> in;
-		for (uint i = 0; i < _net.node_count(NR::I); ++i)
+		for (uint i = 0; i < _net.get_node_count(NR::I); ++i)
 		{
 			in.emplace_back(i + 1.0);
 		}

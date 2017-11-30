@@ -20,31 +20,75 @@ namespace Cortex
 		return 0.5 * (std::tanh( 0.5 * Sum(_input) ) + 1.0);
 	}
 
-	/// Differentiable and smooth ReLU.
-	/// Goes through the origin.
+	inline std::vector<real> Softmax(const std::vector<real>& _input)
+	{
+		if (_input.size() > 0)
+		{
+			std::vector<real> ret(_input);
+			real max(*std::max_element(_input.begin(), _input.end()));
+
+			real denom(std::accumulate(_input.begin(), _input.end(), 0.0, [&](const real _sum, const real _x)
+			{
+				return _sum + std::exp(_x - max);
+			}));
+			for (uint i = 0; i < ret.size(); ++i)
+			{
+				ret.at(i) = std::exp(ret.at(i) - max) / denom;
+			}
+			return ret;
+		}
+		return _input;
+	}
+
+	/**
+	 * @brief ReLU Differentiable ReLU passing through the origin.
+	 * @param _input Vector of input values.
+	 * @return Floating-point value.
+	 */
 	inline real ReLU(const std::vector<real>& _input)
 	{
 		real x( Sum(_input) );
 		return (0.5 * std::sqrt(std::pow(x + 4.0, 2) + x) - 1.0);
 	}
 
+	/**
+	 * @brief ReLU Differentiable ReLU passing through the origin.
+	 * @param _val Input value.
+	 * @return Floating-point value.
+	 */
 	inline real ReLU(const real _val)
 	{
 		return (0.5 * std::sqrt(std::pow(_val + 4.0, 2) + _val) - 1.0);
 	}
 
+	/**
+	 * @brief Gaussian Non-normalised Gaussian (peaks at 1) with
+	 * a mean of 0 and a standard deviation of 1.
+	 * @param _input Vector of input values.
+	 * @return Floating-point value.
+	 * @todo Add mean and standard deviation as parameters.
+	 */
 	inline real Gaussian(const std::vector<real>& _input)
 	{
-		/// Mean = 0, SD = 1, non-normalised
-//			return ( ( std::exp( -( 0.5 * std::pow(Sum(_input), 2) ) ) / std::sqrt(2 * pi) ) );
+		// Mean = 0, SD = 1, non-normalised
 		return std::exp(-0.5 * std::pow(Sum(_input), 2));
 	}
 
+	/**
+	 * @brief Sin Sine function.
+	 * @param _input Vector of input values.
+	 * @return Floating-point value.
+	 */
 	inline real Sin(const std::vector<real>& _input)
 	{
 		return std::sin( Sum(_input) );
 	}
 
+	/**
+	 * @brief Cos Cosine function.
+	 * @param _input Vector of input values.
+	 * @return Floating-point value.
+	 */
 	inline real Cos(const std::vector<real>& _input)
 	{
 		return std::cos( Sum(_input) );
@@ -97,7 +141,7 @@ namespace Cortex
 		return std::exp(-0.5 * std::pow((_x - _mean) / _sd, 2));
 	}
 
-	/// Fast sgn(x)
+	// Fast sgn(x)
 	template <typename T, typename std::enable_if<std::is_arithmetic<T>::value>::type ... >
 	inline real sgn(T val)
 	{

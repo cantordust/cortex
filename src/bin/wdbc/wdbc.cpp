@@ -42,8 +42,8 @@ int main( int argc, char* argv[] )
 //	std::map<uint, std::vector<real>> data;
 //	std::map<uint, std::string> classes;
 
-//	/// Gobble the entries from the file and
-//	/// organise them into tables for easy access
+//	// Gobble the entries from the file and
+//	// organise them into tables for easy access
 //	while ( ss >> entry )
 //	{
 //		uint delim = 0;
@@ -234,7 +234,7 @@ int main( int argc, char* argv[] )
 //					  << 100.0 * es.get_highest_fitness() / static_cast<real>( test_set.size() )
 //					  << "% accuracy)" << std::endl;
 
-//			/// Evolve the ecosystem
+//			// Evolve the ecosystem
 //			if ( es.get_age() == max_age )
 //			{
 //				std::cout << "Total evaluations: " << es.get_total_evals() << "\n";

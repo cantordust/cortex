@@ -18,7 +18,7 @@ namespace Cortex
 		}
 		for (const auto& entry : _j.get<hmap<std::string, json>>() )
 		{
-			E e(as_enum<E>(entry.first));
+			E e(to_enum<E>(entry.first));
 			if (e == Enum<E>::undef)
 			{
 				dlog() << "Invalid enum entry '" << entry.first << "'";
@@ -29,14 +29,26 @@ namespace Cortex
 	}
 
 	template<typename E, typename std::enable_if< std::is_enum<E>::value, E>::type ...>
-	void from_json( const json& _j, E _enum )
+	void from_json( const json& _j, E& _enum )
 	{
-		_enum = as_enum<E>(_j.get<std::string>());
+		_enum = to_enum<E>(_j.get<std::string>());
 		if (_enum == Enum<E>::undef)
 		{
 			dlog() << "Invalid enum entry '" << _enum << "'";
 			exit(EXIT_FAILURE);
 		}
+	}
+
+	void from_json( const json& _j, ParamConf& _pconf )
+	{
+		load(_j, "init", _pconf.init);
+		load(_j, "min", _pconf.min);
+		load(_j, "max", _pconf.max);
+		load(_j, "mean", _pconf.mean);
+		load(_j, "sd", _pconf.sd);
+		load(_j, "alpha", _pconf.alpha);
+		load(_j, "fixed", _pconf.fixed);
+		load(_j, "dist", _pconf.dist);
 	}
 
 	template<typename Val, typename std::enable_if < !std::is_enum<Val>::value, Val >::type ...>
@@ -59,49 +71,44 @@ namespace Cortex
 
 		}
 
-		/// Ecosystem
+		// Ecosystem
 		load("ecosystem.search", ecosystem.search);
 		load("ecosystem.init.size", ecosystem.init.size);
 		load("ecosystem.max.size", ecosystem.max.size);
 		load("ecosystem.max.age", ecosystem.max.age);
 
-		/// Species
+		// Species
 		load("species.init.count", species.init.count);
 		load("species.max.count", species.max.count);
 
-		/// Nets
+		// Nets
 		load("net.type", net.type);
-		load("net.rf", net.rf);
+//		load("net.topology", net.topology);
+		load("net.max.age", net.max.age);
 		load("net.spiking.enc", net.spiking.enc);
 		load("net.spiking.beta", net.spiking.beta);
+		load("net.spiking.receptors", net.spiking.receptors);
 		load("net.spiking.mod", net.spiking.mod);
-		load("net.spiking.timestep", net.spiking.timestep);
 		load("net.spiking.max.latency", net.spiking.max.latency);
-		load("net.max.age", net.max.age);
 
-		/// Nodes
+		// Nodes
 		load("node.init.fn", node.init.fn);
 		load("node.roles", node.roles);
 		load("node.lif", node.lif);
-		load("node.tau.val", node.tau.val);
-		load("node.tau.mean", node.tau.mean);
-		load("node.tau.max", node.tau.max);
-		load("node.tau.sd", node.tau.sd);
+		load("node.tau", node.tau);
+		load("node.rf", node.rf);
 
-		/// Links
-		load("link.weight.val", link.weight.val);
-		load("link.weight.mean", link.weight.mean);
-		load("link.weight.max", link.weight.max);
-		load("link.weight.sd", link.weight.sd);
+		// Links
+		load("link.weight", link.weight);
 		load("link.rec", link.rec);
 		load("link.type", link.type);
 		load("link.prob", link.prob);
 
-		/// Mating
+		// Mating
 		load("mating.enabled", mating.enabled);
 		load("mating.rate", mating.rate);
 
-		/// Mutation
+		// Mutation
 		load("mutation.enabled", mutation.enabled);
 		load("mutation.adaptive", mutation.adaptive);
 		load("mutation.elitism.enabled", mutation.elitism.enabled);
@@ -114,22 +121,23 @@ namespace Cortex
 		load("mutation.node", mutation.node);
 		load("mutation.fn", mutation.fn);
 
-		/// Fitness
+		// Fitness
 		load("fit.tgt", fit.tgt);
 		load("fit.ema.coeff", fit.ema.coeff);
 
-		/// STDP
+		// STDP
 		load("stdp.enabled", stdp.enabled);
 		load("stdp.type", stdp.type);
 		load("stdp.lr", stdp.lr);
 		load("stdp.alpha", stdp.alpha);
-		load("stdp.span", stdp.span);
+		load("stdp.span.pre", stdp.span.pre);
+		load("stdp.span.post", stdp.span.post);
 
-		/// Novelty
+		// Novelty
 		load("novelty.enabled", novelty.enabled);
 		load("novelty.hist_size", novelty.hist_size);
 
-		/// Others
+		// Others
 		load("runs", runs);
 		load("threads", threads);
 
@@ -138,7 +146,7 @@ namespace Cortex
 
 	bool Config::parse_json()
 	{
-		/// Open, parse and load the JSON file
+		// Open, parse and load the JSON file
 		std::ifstream is( config_file );
 		std::stringstream ss_json;
 		ss_json << is.rdbuf();
@@ -159,10 +167,10 @@ namespace Cortex
 		return true;
 	}
 
-	std::deque<std::string> get_keys(const std::string& _keys)
+	std::deque<std::string> get_keys(const std::string& _key_seq)
 	{
 		std::deque<std::string> keys;
-		std::stringstream ss(_keys);
+		std::stringstream ss(_key_seq);
 		std::string key;
 
 		while ( std::getline( ss, key, '.' ) )
@@ -171,6 +179,7 @@ namespace Cortex
 		}
 		return keys;
 	}
+
 
 	Config::Config(const std::string& _config_file)
 		:
@@ -182,6 +191,10 @@ namespace Cortex
 
 		rng.engine.seed( static_cast<ulong>( std::chrono::high_resolution_clock::now().time_since_epoch().count() ) );
 
+		// Default parameters. Cf. Config.hpp for descriptions. This is
+		// deliberately long to test the rewrapping function.
+		// @todo Doxygen documentation
+
 		ecosystem.search = Search::Fitness;
 		ecosystem.init.size = 50;
 		ecosystem.max.size = 200;
@@ -191,13 +204,10 @@ namespace Cortex
 		species.max.count = 15;
 
 		net.type = NT::Classical;
-		net.rf = RF::Undef;
-		net.spiking.enc = Enc::Rank;
-		net.spiking.beta = 1.5;
-		net.spiking.mod = 0.9;
-		net.spiking.timestep = 10.0;
-		net.spiking.max.latency = 70.0;
+//		net.topology = Topology::Random;
 		net.max.age = 0;
+
+		node.rf = RF::Undef;
 
 		node.init.fn[NR::B] = Fn::Const;
 		node.init.fn[NR::I] = Fn::Sum;
@@ -211,17 +221,30 @@ namespace Cortex
 
 		node.lif = true;
 
-		/// Initial value | mean | max | SD
-		node.tau = {0.0, 10.0, 20.0, 0.1};
+		// Initial value | mean | max | SD
+		node.tau.init = 0.0;
+		node.tau.mean = 5.0;
+		node.tau.max = 10.0;
+		node.tau.sd = 0.1;
 
-		/// Initial value | mean | max | SD
-		link.weight = {0.0, 0.0, 5.0, 1.0};
+		net.spiking.enc = Enc::RankOrder;
+		net.spiking.beta = 1.5;
+		net.spiking.receptors = 10;
+		net.spiking.mod = 0.9;
+		net.spiking.max.latency = 70.0;
+
+		// Initial value | mean | max | SD
+		link.weight.init = 0.0;
+		link.weight.min = -5.0;
+		link.weight.max = 5.0;
+		link.weight.mean = 0.0;
+		link.weight.sd = 1.0;
+
 		link.rec = true;
-
 		link.type[LT::F] = 0.8;
 		link.type[LT::R] = 0.2;
 
-		/// Forward link probabilities
+		// Forward link probabilities
 		link.prob[LT::F][NR::B][NR::H] = 1.0;
 		link.prob[LT::F][NR::B][NR::O] = 1.0;
 		link.prob[LT::F][NR::I][NR::H] = 100.0;
@@ -229,7 +252,7 @@ namespace Cortex
 		link.prob[LT::F][NR::H][NR::H] = 50.0;
 		link.prob[LT::F][NR::H][NR::O] = 100.0;
 
-		/// Recurrent link probabilities
+		// Recurrent link probabilities
 		link.prob[LT::R][NR::I][NR::I] = 1.0;
 		link.prob[LT::R][NR::H][NR::I] = 10.0;
 		link.prob[LT::R][NR::H][NR::H] = 10.0;
@@ -242,7 +265,7 @@ namespace Cortex
 
 		mutation.enabled = true;
 		mutation.adaptive = false;
-		mutation.rate = 10;
+		mutation.rate = 5;
 		mutation.attempts = 5;
 		mutation.opt = Opt::Trend;
 		mutation.scale = 0.05;
@@ -260,7 +283,7 @@ namespace Cortex
 		mutation.node[NR::O] = 5.0;
 		mutation.node[NR::H] = 10.0;
 
-		/// Default transfer functions
+		// Default transfer functions
 		mutation.fn[NR::B][node.init.fn.at(NR::B)] = 1.0;
 		mutation.fn[NR::I][node.init.fn.at(NR::I)] = 1.0;
 		mutation.fn[NR::O][node.init.fn.at(NR::O)] = 1.0;
@@ -276,7 +299,8 @@ namespace Cortex
 		stdp.type = STDP::Heb;
 		stdp.lr = 0.01;
 		stdp.alpha = 1.05;
-		stdp.span = 10.0;
+		stdp.span.pre = 25.0;
+		stdp.span.post = 25.0;
 
 		novelty.enabled = false;
 		novelty.hist_size = 100;
@@ -289,7 +313,7 @@ namespace Cortex
 
 	bool Config::validate()
 	{
-		/// Make sure that there are input and output nodes
+		// Make sure that there are input and output nodes
 		std::stringstream problems;
 
 		if (ecosystem.init.size == 0)
@@ -322,21 +346,28 @@ namespace Cortex
 			problems << "\t - Missing output nodes.\n";
 		}
 
-		/// Make sure that the network type is consistent
-		/// with the activation function
+		// Make sure that the network type is consistent
+		// with the activation function
 		if (net.type == NT::Undef)
 		{
 			problems << "\t - Missing network type.\n";
 		}
 		else if (net.type == NT::Spiking)
 		{
-			/// Disable transfer function mutation.
+			// Disable transfer function mutation.
 			mutation.prob.erase(Mut::Fn);
+
+			// Set the maximal weight to 1 and the minimal to -1.
+			link.weight.min = -1.0;
+			link.weight.max = 1.0;
 		}
 		else
 		{
-			/// Disable membrane time constant mutation.
+			// Disable membrane time constant mutation.
 			mutation.prob.erase(Mut::Tau);
+
+			// Set the number of receptors to 1 per variable.
+			net.spiking.receptors = 1;
 		}
 
 		if (ecosystem.search == Search::Fitness &&
@@ -403,9 +434,60 @@ namespace Cortex
 		return true;
 	}
 
-	bool traverse(json& _j, json::iterator& _it, const std::string& _param)
+	inline json Config::operator[](const std::string& _param)
 	{
-		std::deque<std::string> keys(get_keys(_param));
+		json j(config_json);
+		auto it(j.begin());
+		if (traverse(j, it, _param))
+		{
+			return *it;
+		}
+		return json();
+	}
+
+	inline json Config::get_json() const
+	{
+		return config_json;
+	}
+
+	inline uint Config::new_spc_id()
+	{
+		return ++species_id;
+	}
+
+	inline uint Config::new_net_id()
+	{
+		return ++net_id;
+	}
+
+	inline void Config::reset_ids()
+	{
+		species_id = 0;
+		net_id = 0;
+	}
+
+	inline bool Config::rnd_chance(const real _prob)
+	{
+		return rnd_real(0.0, 1.0) <= _prob;
+	}
+
+	inline real Config::rnd_nd(const real _mean, const real _sd)
+	{
+		glock lk(rng.mtx);
+		std::normal_distribution<real> dist(_mean, _sd);
+		return dist(rng.engine);
+	}
+
+	inline size_t Config::w_dist(const std::vector<real>& _weights)
+	{
+		glock lk(rng.mtx);
+		std::discrete_distribution<size_t> dist(_weights.begin(), _weights.end());
+		return dist(rng.engine);
+	}
+
+	bool traverse(json& _j, json::iterator& _it, const std::string& _key_seq)
+	{
+		std::deque<std::string> keys(get_keys(_key_seq));
 		std::string key(keys.front());
 		keys.pop_front();
 
@@ -417,7 +499,7 @@ namespace Cortex
 			}
 			if (keys.empty())
 			{
-				/// Key found
+				// Key found
 				return true;
 			}
 			else if (_it->is_object())

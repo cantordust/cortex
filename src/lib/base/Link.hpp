@@ -9,19 +9,19 @@ namespace Cortex
 {
 	struct Link
 	{
-		/// Link type (forward or recurrent)
+		// Link type (forward or recurrent)
 		LT type;
 
-		/// Always refers to the node in which
-		/// the link was created.
+		// Always refers to the node in which
+		// the link was created.
 		Node& src;
 
-		/// The target node.
-		/// Only a reference_wrapper to this link
-		/// is stored at the target node.
+		// The target node.
+		// Only a reference_wrapper to this link
+		// is stored at the target node.
 		Node& tgt;
 
-		/// Parameters subject to mutation
+		// Parameters subject to mutation
 		Param weight;
 
 		Link() = delete;
@@ -30,7 +30,7 @@ namespace Cortex
 
 		Link(Link&& _other) = delete;
 
-		explicit Link(Node& _src, Node& _tgt, const LT _type, Config& _cfg);
+		explicit Link(Node& _src, Node& _tgt, const LT _type, ConfigRef& _cfg);
 
 		explicit Link(Node& _src, Node& _tgt, const Link& _other);
 
@@ -38,11 +38,7 @@ namespace Cortex
 
 		void remove_from_target();
 
-		friend std::ostream& operator<< (std::ostream& _strm, const Link& _link)
-		{
-			_strm << " weight: " << _link.weight.val();
-			return _strm;
-		}
+		friend std::ostream& operator<< (std::ostream& _strm, const Link& _link);
 	};
 
 	struct NodeID;
@@ -54,7 +50,7 @@ namespace Cortex
 
 		Links();
 
-		void add(const LT _lt, Node& _src, Node& _tgt, Config& _cfg);
+		void add(const LT _lt, Node& _src, Node& _tgt, ConfigRef& _cfg);
 
 		void add(const LT _lt, Node& _src, Node& _tgt, const Link& _other);
 

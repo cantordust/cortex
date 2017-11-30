@@ -1,49 +1,34 @@
 #ifndef GRF_HPP
 #define GRF_HPP
 
-#include "Globals.hpp"
+#include "Config.hpp"
 
 namespace Cortex
 {
 	class GRF
 	{
-		private:
+	private:
 
-			real mu;
-			real denom; /// = 2 * sigma^2
+		real mu;
+		real denom; // = 2 * sigma^2
 
-		public:
+		std::vector<real> means;
 
-			GRF()
-				:
-				  mu(0.0),
-				  denom(0.0)
-			{}
+	public:
 
-			GRF(const uint _N, /// Number of receptive fields
-				const uint _i, /// Index of the current node
-				const real _beta, /// Gaussian spread parameter
-				const real _i_min, /// Minimal value of the variable
-				const real _i_max) /// Maximal value of the variable
-				:
-				  mu(_i_min + (2.0 * _i - 3.0) / ((2.0 * _N)*(_i_max - _i_min))),
-				  denom(2.0 * std::pow((_i_max - _i_min) / (_beta * (_N - 2.0)), 2))
-			{}
+		GRF() {}
 
-			inline real get_delay(const real _x)
-			{
-				return std::exp(- std::pow(_x - mu, 2) / denom);
-			}
+		GRF(const ConfigRef& _cfg,
+			const uint _idx)
+			:
+			  mu(( 0.5 * (2.0 * _idx - 3.0) / _cfg.get().net.spiking.receptors)),
+			  denom(2.0 * std::pow(1.0 / (_cfg.get().net.spiking.beta * (_cfg.get().net.spiking.receptors - 2.0)), 2))
+		{}
 
-			inline real get_mu() const
-			{
-				return mu;
-			}
-
-			inline real get_denom() const
-			{
-				return denom;
-			}
+		inline real convert(const real _x)
+		{
+			 return std::exp(- std::pow(_x - mu, 2) / denom);
+		}
 	};
 
 }

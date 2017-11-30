@@ -3,12 +3,12 @@
 
 namespace Cortex
 {
-	Link::Link(Node& _src, Node& _tgt, const LT _type, Config& _cfg)
+	Link::Link(Node& _src, Node& _tgt, const LT _type, ConfigRef& _cfg)
 		:
 		  type(_type),
 		  src(_src),
 		  tgt(_tgt),
-		  weight(_cfg, _cfg.link.weight)
+		  weight(_cfg, _cfg.get().link.weight)
 	{
 		add_to_target();
 	}
@@ -23,48 +23,54 @@ namespace Cortex
 		add_to_target();
 	}
 
-	void Link::add_to_target()
+	inline void Link::add_to_target()
 	{
 		tgt.links.sources.at(type).at(src.id.role).emplace(src.id.idx, *this);
 	}
 
-	void Link::remove_from_target()
+	inline void Link::remove_from_target()
 	{
 		tgt.links.sources.at(type).at(src.id.role).erase(src.id.idx);
 	}
 
-	/// Links methods
+	std::ostream& operator<< (std::ostream& _strm, const Link& _link)
+	{
+		_strm << " weight: " << _link.weight.cur();
+		return _strm;
+	}
+
+	// Links struct methods
 	Links::Links()
 	{
-		/// Iterate over link types
+		// Iterate over link types
 		for (const auto& ltype : Enum<LT>::entries)
 		{
 			for (const auto& nrole : Enum<NR>::entries)
 			{
-				/// Iterate over source-target
-				/// role pairs for this link type
+				// Iterate over source-target
+				// role pairs for this link type
 				targets[ltype.first][nrole.first] = hmap<uint, LinkPtr>();
 				sources[ltype.first][nrole.first] = hmap<uint, LinkRef>();
 			}
 		}
 	}
 
-	void Links::add(const LT _lt, Node& _src, Node& _tgt, Config& _cfg)
+	inline void Links::add(const LT _lt, Node& _src, Node& _tgt, ConfigRef& _cfg)
 	{
 		targets.at(_lt).at(_tgt.id.role).emplace(_tgt.id.idx, std::make_unique<Link>(_src, _tgt, _lt, _cfg));
 	}
 
-	void Links::add(const LT _lt, Node& _src, Node& _tgt, const Link& _other)
+	inline void Links::add(const LT _lt, Node& _src, Node& _tgt, const Link& _other)
 	{
 		targets.at(_lt).at(_tgt.id.role).emplace(_tgt.id.idx, std::make_unique<Link>(_src, _tgt, _other));
 	}
 
-	void Links::erase(const LT _lt, const NodeID& _id)
+	inline void Links::erase(const LT _lt, const NodeID& _id)
 	{
-		/// Remove the link ref from the target
+		// Remove the link ref from the target
 		targets.at(_lt).at(_id.role).at(_id.idx)->remove_from_target();
 
-		/// Remove the actual link
+		// Remove the actual link
 		targets.at(_lt).at(_id.role).erase(_id.idx);
 	}
 

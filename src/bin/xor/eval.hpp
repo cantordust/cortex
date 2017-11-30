@@ -7,9 +7,9 @@ using namespace Cortex;
 
 namespace Xor
 {
-	/// The boundary should be 0 for tanh
-	/// and 0.5 for the logistic function.
-	/// Changed in setup_config().
+	// The boundary should be 0 for tanh
+	// and 0.5 for the logistic function.
+	// Changed in setup_config().
 	static real boundary;
 
 	bool setup(Config& _config);

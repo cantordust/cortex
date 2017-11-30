@@ -8,7 +8,7 @@ using namespace Cortex;
 
 namespace CartPole
 {
-	static real g = -9.81; /// [m/s^2]
+	static real g = -9.81; // [m/s^2]
 
 	namespace Rnd
 	{
@@ -23,32 +23,32 @@ namespace CartPole
 
 	namespace Max
 	{
-		/// Maximal force the controller can apply to the cart.
+		// Maximal force the controller can apply to the cart.
 		static real force = 10.0;
 
-		/// Maximal offset angle of any pole for any cart
-		/// as measured from the ordinate.
+		// Maximal offset angle of any pole for any cart
+		// as measured from the ordinate.
 		static real theta = 36.0;
 
-		/// Maximal offset of the cart from the centre of the track
+		// Maximal offset of the cart from the centre of the track
 		static real pos = 0.0;
 
-		/// Minimal number of timesteps that the controller has to
-		/// balance the poles for before a solution is declared.
+		// Minimal number of timesteps that the controller has to
+		// balance the poles for before a solution is declared.
 		static uint steps = 200000;
 	};
 
 	namespace RK4
 	{
-		/// Time step for RK4 integration.
-		static real dt = 0.01; /// [s]
+		// Time step for RK4 integration.
+		static real dt = 0.01; // [s]
 		static real dt2;
 		static real dt6;
 	};
 
-	/// cur			current value
-	/// tmp			temporary value
-	/// k1 ~ k3		estimated slopes
+	// cur			current value
+	// tmp			temporary value
+	// k1 ~ k3		estimated slopes
 	struct Param
 	{
 		real cur;
@@ -70,18 +70,18 @@ namespace CartPole
 		{}
 	};
 
-	/// theta:		[rad]		pole angle
-	/// omega:		[rad/s]		pole angular velocity
-	/// mass		[kg]		pole mass
-	/// half_len:	[m]			half of the pole length
-	/// alpha:		[rad/s^2]	pole angular acceleration
-	/// hfc:					hinge friction coefficient
-	///
-	/// ml:						mass * hlen
-	/// hml:					hfc / ml
-	/// coeff:					-0.75 / hlen
-	///
-	/// rk4:					Struct holding the estimated slopes for RK4
+	// theta:		[rad]		pole angle
+	// omega:		[rad/s]		pole angular velocity
+	// mass		[kg]		pole mass
+	// half_len:	[m]			half of the pole length
+	// alpha:		[rad/s^2]	pole angular acceleration
+	// hfc:					hinge friction coefficient
+	//
+	// ml:						mass * hlen
+	// hml:					hfc / ml
+	// coeff:					-0.75 / hlen
+	//
+	// rk4:					Struct holding the estimated slopes for RK4
 	class Pole
 	{
 	public:
@@ -100,10 +100,10 @@ namespace CartPole
 
 		struct Def
 		{
-			static real theta; /// (-theta, theta) passed to the RNG
+			static real theta; // (-theta, theta) passed to the RNG
 			static real omega;
-			static real mass; /// DPB: 0.1 for long pole, 0.01 for short pole
-			static real len; /// DPB: 1.0 for long pole, 0.1 for short pole
+			static real mass; // DPB: 0.1 for long pole, 0.01 for short pole
+			static real len; // DPB: 1.0 for long pole, 0.1 for short pole
 			static real alpha;
 			static real hfc;
 		};
@@ -140,7 +140,7 @@ namespace CartPole
 		real cos_theta;
 
 		friend class Cart;
-		friend class Env;
+		friend class Track;
 
 	public:
 
@@ -208,13 +208,13 @@ namespace CartPole
 			cos_theta = std::cos(theta.tmp);
 		}
 
-		/// Effective mass
+		// Effective mass
 		inline real m_eff()
 		{
 			return mass * (1.0 - 0.75 * std::pow(cos_theta, 2));
 		}
 
-		/// Effective force
+		// Effective force
 		inline real f_eff()
 		{
 			return ml * std::pow(omega.tmp, 2) * sin_theta +
@@ -233,15 +233,15 @@ namespace CartPole
 		}
 	};
 
-	/// pos			[m]			position relative to the centre of the track
-	/// vel			[m/s]		velocity of the cart
-	/// mass		[kg]		cart mass
-	/// acc			[m/s^2]		acceleration of the cart
-	/// k_l						coefficient of the left spring
-	/// k_r						coefficient of the right spring
-	/// tfc						track friction coefficient
-	///
-	/// force		[N]			force applied to the cart
+	// pos			[m]			position relative to the centre of the track
+	// vel			[m/s]		velocity of the cart
+	// mass		[kg]		cart mass
+	// acc			[m/s^2]		acceleration of the cart
+	// k_l						coefficient of the left spring
+	// k_r						coefficient of the right spring
+	// tfc						track friction coefficient
+	//
+	// force		[N]			force applied to the cart
 	class Cart
 	{
 	public:
@@ -299,7 +299,7 @@ namespace CartPole
 
 		std::vector<Pole> poles;
 
-		friend class Env;
+		friend class Track;
 
 	public:
 
@@ -370,10 +370,10 @@ namespace CartPole
 
 		inline real compute_acc()
 		{
-			/// \todo Add coupled oscillator mode.
-			/// We have to define an equilibrium position
-			/// depending on the spring constants.
-			//			real cart_acc(force - tfc * sgn(vel.tmp) - (k_l + k_r) * (pos.tmp - pos.eq));
+			// @todo Add coupled oscillator mode.
+			// We have to define an equilibrium position
+			// depending on the spring constants.
+			// real cart_acc(force - tfc * sgn(vel.tmp) - (k_l + k_r) * (pos.tmp - pos.eq));
 			acc = force - tfc * sgn(vel.tmp);
 			real total_mass(mass);
 			for (Pole& pole : poles)
@@ -396,7 +396,7 @@ namespace CartPole
 			return poles;
 		}
 
-		/// Set the temporary values for all parameters
+		// Set the temporary values for all parameters
 		inline void set_tmp(const real _dt)
 		{
 			vel.tmp = vel.cur + acc * _dt;
@@ -407,13 +407,13 @@ namespace CartPole
 			}
 		}
 
-		/// Update the state given the applied force
-		/// using the RK4 integration method.
+		// Update the state given the applied force
+		// using the RK4 integration method.
 		inline void update(const real _action)
 		{
 			force = _action * Max::force;
 
-			/// k1
+			// k1
 			set_tmp(0.0);
 			vel.k1 = compute_acc();
 			pos.k1 = vel.tmp;
@@ -423,7 +423,7 @@ namespace CartPole
 				pole.theta.k1 = pole.omega.tmp;
 			}
 
-			/// k2
+			// k2
 			set_tmp(RK4::dt2);
 			vel.k2 = compute_acc();
 			pos.k2 = vel.tmp;
@@ -433,7 +433,7 @@ namespace CartPole
 				pole.theta.k2 = pole.omega.tmp;
 			}
 
-			/// k3
+			// k3
 			set_tmp(RK4::dt2);
 			vel.k3 = compute_acc();
 			pos.k3 = vel.tmp;
@@ -443,7 +443,7 @@ namespace CartPole
 				pole.theta.k3 = pole.omega.tmp;
 			}
 
-			/// New value
+			// New value
 			set_tmp(RK4::dt);
 			vel.cur += RK4::dt6 * (vel.k1 + 2.0 * (vel.k2 + vel.k3) + compute_acc());
 			pos.cur += RK4::dt6 * (pos.k1 + 2.0 * (pos.k2 + pos.k3) + vel.tmp);
@@ -476,30 +476,30 @@ namespace CartPole
 		}
 	};
 
-	/// len		[m]		track length
-	/// steps			time steps since the beginning of the simulation
-	class Env
+	// len		[m]		track length
+	// steps			time steps since the beginning of the simulation
+	class Track
 	{
 	public:
 
 		struct Def
 		{
-			/// Total track length.
-			/// Centred at the origin, so carts
-			/// are limited to (-len/2, len/2)
+			// Total track length.
+			// Centred at the origin, so carts
+			// are limited to (-len/2, len/2)
 			static real track_len;
 
-			/// Is the controller given information
-			/// about velocities or just the position?
+			// Is the controller given information
+			// about velocities or just the position?
 			static bool with_vel;
 
-			/// Coupled oscillator mode.
-			/// Only valid if carts > 1.
-			/// \todo Currently unused.
+			// Coupled oscillator mode.
+			// Only valid if carts > 1.
+			// @todo Currently unused.
 			static bool coupled;
 
-			/// Spring constants.
-			/// \todo Currently unused.
+			// Spring constants.
+			// @todo Currently unused.
 			static std::vector<real> ks;
 		};
 
@@ -520,7 +520,7 @@ namespace CartPole
 		inline void add_cart(const Cart& _cart)
 		{
 			carts.emplace_back(_cart);
-			/// \todo Implement coupled oscillator
+			// @todo Implement coupled oscillator
 		}
 
 		inline std::vector<Cart>& get_carts()
@@ -574,14 +574,14 @@ namespace CartPole
 			for (Cart& cart : carts)
 			{
 				s.emplace_back(cart.pos.cur);
-				if (Env::Def::with_vel)
+				if (Track::Def::with_vel)
 				{
 					s.emplace_back(cart.vel.cur);
 				}
 				for (Pole& pole : cart.poles)
 				{
 					s.emplace_back(restrict(pole.theta.cur));
-					if (Env::Def::with_vel)
+					if (Track::Def::with_vel)
 					{
 						s.emplace_back(pole.omega.cur);
 					}
@@ -596,14 +596,14 @@ namespace CartPole
 			for (Cart& cart : carts)
 			{
 				s.emplace_back(cart.pos.cur / cart.pos.max);
-				if (Env::Def::with_vel)
+				if (Track::Def::with_vel)
 				{
 					s.emplace_back(cart.vel.cur);
 				}
 				for (Pole& pole : cart.poles)
 				{
 					s.emplace_back(restrict(pole.theta.cur) / pole.theta.max);
-					if (Env::Def::with_vel)
+					if (Track::Def::with_vel)
 					{
 						s.emplace_back(pole.omega.cur);
 					}
@@ -640,7 +640,7 @@ namespace CartPole
 			return poles;
 		}
 
-		friend std::ostream& operator << (std::ostream& _strm, const Env& _env)
+		friend std::ostream& operator << (std::ostream& _strm, const Track& _env)
 		{
 			_strm.setf(std::ios_base::boolalpha);
 
@@ -653,10 +653,10 @@ namespace CartPole
 				  << "\n\nRK4:"
 				  << "\n\tdt: " << RK4::dt << " s"
 				  << "\n\tGravitational acceleration: " << g << " m/s^2"
-				  << "\n\tTrack length: " << Env::Def::track_len << " m"
-				  << "\n\tProvide velocity information: " << Env::Def::with_vel
-				  << "\n\tCoupled oscillator mode: " << Env::Def::coupled
-				  << "\n\tSpring coefficients:" << _env.as_csv(Env::Def::ks);
+				  << "\n\tTrack length: " << Track::Def::track_len << " m"
+				  << "\n\tProvide velocity information: " << Track::Def::with_vel
+				  << "\n\tCoupled oscillator mode: " << Track::Def::coupled
+				  << "\n\tSpring coefficients:" << _env.as_csv(Track::Def::ks);
 
 			for (const Cart& cart : _env.carts)
 			{
@@ -681,7 +681,7 @@ namespace CartPole
 		static std::vector<real> vel;
 		static std::vector<real> omega;
 		static std::vector<Var> vars;
-		static std::vector<Env> envs;
+		static std::vector<Track> tracks;
 	};
 }
 

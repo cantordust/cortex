@@ -22,7 +22,7 @@ namespace Xor
 			}
 		}
 
-		/// Fitness calculated with the tanh or step functions
+		// Fitness calculated with the tanh or step functions
 		real fitness(_net.cfg.fit.tgt);
 
 		for ( uint idx = 0; idx < output.size(); ++idx )
@@ -53,9 +53,9 @@ namespace Xor
 		}
 		else
 		{
-			/// Bad transfer function at the output.
-			/// Change this to set an appropriate boundary
-			/// in case of a custom function.
+			// Bad transfer function at the output.
+			// Change this to set an appropriate boundary
+			// in case of a custom function.
 			return false;
 		}
 
