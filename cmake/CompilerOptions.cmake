@@ -12,7 +12,7 @@ if(NOT (${custom_compiler} STREQUAL "GCC" OR ${custom_compiler} STREQUAL "Clang"
 endif()
 
 set(CMAKE_CXX_COMPILER_ID ${custom_compiler} CACHE STRING "C++ compiler" FORCE)
-msg("Compiler: ${CMAKE_CXX_COMPILER_ID}")
+msg("Compiler: ${CMAKE_CXX_COMPILER}")
 
 ## TODO:	Platform-aware stdandard library implementation
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")

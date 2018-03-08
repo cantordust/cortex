@@ -130,14 +130,11 @@ namespace Cortex
 
 	void Data::set_defaults()
 	{
-		if (conf.dataset.enabled)
-		{
-			stat = std::vector<Stat>(conf.node.roles.at(NR::I), Stat(MA::SMA));
+		stat = std::vector<Stat>(conf.node.roles.at(NR::I), Stat(MA::SMA));
 
-			for (const auto& set : Enum<Set>::entries)
-			{
-				by_set[set.first] = {};
-			}
+		for (const auto& set : Enum<Set>::entries)
+		{
+			by_set[set.first] = {};
 		}
 	}
 

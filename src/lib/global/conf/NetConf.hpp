@@ -1,7 +1,7 @@
 #ifndef CORTEX_NETCONF_HPP
 #define CORTEX_NETCONF_HPP
 
-#include "Globals.hpp"
+#include "LayerConf.hpp"
 
 namespace Cortex
 {
@@ -15,6 +15,12 @@ namespace Cortex
 		/// For now, this is limited to classical or spiking.
 		/// @todo Boltzmann machines?
 		NT type;
+
+		/// Network layout
+		Layout layout;
+
+		/// Network layers (only for layered layout)
+		emap<NR, std::vector<LayerConf>> layers;
 
 		struct RFConf
 		{

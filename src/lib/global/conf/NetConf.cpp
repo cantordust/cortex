@@ -24,6 +24,7 @@ namespace Cortex
 	void load(const json& _j, NetConf& _c)
 	{
 		load(_j, "type", _c.type);
+		load(_j, "layout", _c.layout);
 		load(_j, "rf", _c.rf);
 		load(_j, "spike", _c.spike);
 		load(_j, "max.age", _c.max.age);
@@ -50,14 +51,18 @@ namespace Cortex
 	void NetConf::set_defaults()
 	{
 		type = NT::Classical;
+		layout = Layout::Random;
+
 		rf.type = RF::None;
 		rf.size = 1;
 		rf.grf.cutoff = 0.95;
 		rf.grf.beta = 1.5;
+
 		spike.lif = true;
 		spike.enc = Enc::Direct;
 		spike.mod = 0.9;
 		spike.max.delay = 70.0;
+
 		max.age = 0;
 	}
 

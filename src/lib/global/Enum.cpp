@@ -186,8 +186,7 @@ namespace Cortex
 	EMap<Layout> Enum<Layout>::entries =
 	{
 		{Layout::Random, "random"},
-		{Layout::Layered, "layered"},
-		{Layout::Conv, "conv"}
+		{Layout::Layered, "layered"}
 	};
 	template<>
 	Layout Enum<Layout>::undef = Layout::Undef;

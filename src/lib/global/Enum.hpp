@@ -305,12 +305,35 @@ namespace Cortex
 	{
 		Undef,
 		Random,
-		Layered,
-		Conv
+		Layered
 	};
 
 	template<> EMap<Layout> Enum<Layout>::entries;
 	template<> Layout Enum<Layout>::undef;
+
+	/// Layer type
+	enum class LayerType : uchar
+	{
+		Undef,
+		Regular,
+		Conv,
+		Pool,
+		Softmax
+	};
+
+	template<> EMap<LayerType> Enum<LayerType>::entries;
+	template<> LayerType Enum<LayerType>::undef;
+
+	/// Data type
+	enum class DataType : uchar
+	{
+		Undef,
+		Real,
+		TimeSeries
+	};
+
+	template<> EMap<DataType> Enum<DataType>::entries;
+	template<> DataType Enum<DataType>::undef;
 
 	/// Task type
 	enum class Task : uchar
@@ -324,17 +347,6 @@ namespace Cortex
 
 	template<> EMap<Task> Enum<Task>::entries;
 	template<> Task Enum<Task>::undef;
-
-	/// Data type
-	enum class DataType : uchar
-	{
-		Undef,
-		Real,
-		TimeSeries
-	};
-
-	template<> EMap<DataType> Enum<DataType>::entries;
-	template<> DataType Enum<DataType>::undef;
 }
 
 #endif // CORTEX_ENUM_HPP

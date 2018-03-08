@@ -21,36 +21,36 @@ find_package(Threads REQUIRED)
 #	)
 #endif()
 
-if (NOT DEFINED download_single_header_libs)
-	msg("Downloading single-header libraries...")
+#if (NOT DEFINED download_single_header_libs)
+#	msg("Downloading single-header libraries...")
 
-	file(DOWNLOAD
-		https://raw.githubusercontent.com/cantordust/threadpool/master/include/threadpool.hpp
-		${dep_dir}/threadpool.hpp
-	)
+#	file(DOWNLOAD
+#		https://raw.githubusercontent.com/cantordust/threadpool/master/include/threadpool.hpp
+#		${dep_dir}/threadpool.hpp
+#	)
 
-    file(DOWNLOAD
-		https://raw.githubusercontent.com/cantordust/dlog/master/include/dlog.hpp
-		${dep_dir}/dlog.hpp
-	)
+#    file(DOWNLOAD
+#		https://raw.githubusercontent.com/cantordust/dlog/master/include/dlog.hpp
+#		${dep_dir}/dlog.hpp
+#	)
 
-    file(DOWNLOAD
-		https://raw.githubusercontent.com/cantordust/abacus_hash/master/include/abacus_hash.hpp
-		${dep_dir}/abacus_hash.hpp
-	)
+#    file(DOWNLOAD
+#		https://raw.githubusercontent.com/cantordust/abacus_hash/master/include/abacus_hash.hpp
+#		${dep_dir}/abacus_hash.hpp
+#	)
 
-    file(DOWNLOAD
-		https://raw.githubusercontent.com/nlohmann/json/master/single_include/nlohmann/json.hpp
-		${dep_dir}/json.hpp
-	)
+#    file(DOWNLOAD
+#		https://raw.githubusercontent.com/nlohmann/json/master/single_include/nlohmann/json.hpp
+#		${dep_dir}/json.hpp
+#	)
 
-    set(download_single_header_libs
-		FALSE
-		CACHE
-		BOOL
-		"Download single-header libraries"
-		)
-endif()
+#    set(download_single_header_libs
+#		FALSE
+#		CACHE
+#		BOOL
+#		"Download single-header libraries"
+#		)
+#endif()
 
 # TODO: Qt for visualisation
 #find_package(Qt5 REQUIRED COMPONENTS Widgets)

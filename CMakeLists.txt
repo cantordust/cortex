@@ -12,7 +12,7 @@ project(cortex CXX)
 #
 # TODO: Test other compilers (MSVC, MinGW, etc.)
 
-set(custom_compiler Clang)
+set(custom_compiler GCC)
 
 # Select build type
 #
@@ -20,10 +20,10 @@ set(custom_compiler Clang)
 #
 # Default: Release
 
-set(build_type RelWithDebInfo)
+set(build_type Debug)
 
 # Use the Armadillo BLAS library
-set(use_blas ON)
+set(use_blas OFF)
 
 # Root directory
 set(root_dir "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Root directory")
