@@ -1,23 +1,17 @@
+#include "Conf.hpp"
 #include "Genotype.hpp"
 
 namespace Cortex
 {
-	Genotype::Genotype(const emap<NR, uint>& _genome)
+	Genotype::Genotype(const Conf& _conf)
 	{
-		for (const auto& nr : Enum<NR>::entries)
+		for (const auto& nr : _conf.node.roles)
 		{
-			if (_genome.find(nr.first) != _genome.end())
-			{
-				genome[nr.first] = _genome.at(nr.first);
-			}
-			else
-			{
-				genome[nr.first] = 0;
-			}
+			genome[nr.first] = nr.second;
 		}
 	}
 
-	inline bool Genotype::add(const NR _nr, const uint _count)
+	bool Genotype::add(const NR _nr, const uint _count)
 	{
 		if (_count > 0)
 		{
@@ -26,7 +20,7 @@ namespace Cortex
 		return true;
 	}
 
-	inline bool Genotype::set(const NR _nr, const uint _count)
+	bool Genotype::set(const NR _nr, const uint _count)
 	{
 		if (_count == 0)
 		{
@@ -39,7 +33,7 @@ namespace Cortex
 		return true;
 	}
 
-	inline bool Genotype::erase(const NR _nr, const uint _count)
+	bool Genotype::erase(const NR _nr, const uint _count)
 	{
 		if (genome.find(_nr) == genome.end() ||
 			genome.at(_nr) < _count)
@@ -50,17 +44,17 @@ namespace Cortex
 		return true;
 	}
 
-	inline uint Genotype::count(const NR _nr)
+	uint Genotype::count(const NR _nr)
 	{
 		return genome.at(_nr);
 	}
 
-	inline const auto& Genotype::get_genome() const
+	const emap<NR, uint>& Genotype::get_genome() const
 	{
 		return genome;
 	}
 
-	inline bool Genotype::operator == (const Genotype& _other)
+	bool Genotype::operator == (const Genotype& _other)
 	{
 		for (const auto& gene : genome)
 		{

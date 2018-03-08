@@ -2,13 +2,13 @@
 #define EVAL_HPP
 
 #include "Cortex.hpp"
-#include "physics.hpp"
+#include "Physics.hpp"
 
 namespace CartPole
 {
 	static std::mutex dump_mtx;
 
-	bool setup(Config& _config);
+	bool setup(Conf& _config);
 
 	void eval(Net& _net);
 
@@ -28,7 +28,7 @@ namespace CartPole
 
 	void test();
 
-	// Random track based on the default track
+	/// Random track based on the default track
 	Track def_env();
 }
 

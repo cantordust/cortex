@@ -1,38 +1,50 @@
 {
-    "ecosystem":
+    "eco":
     {
+		"search": "fitness",
         "init":
         {
-            "size" : 20
+            "size" : 10
         },
         "max":
         {
-            "age" :  30,
-            "size": 50
+            "age" :  1,
+            "size": 30
         }
     },
     "node":
     {
         "roles":
         {
-            "b": 0,
-            "i": 5,
-            "o": 3,
-            "h": 0
+            "i": 10000,
+            "h": 1000,
+            "o": 16
         }
     },
+	"link" :
+	{
+		"rec" : false
+	},
     "mut":
     {
     	"prob":
     	{
-    		"add_node" : 50,
-    		"erase_node" : 50
+    		"add_node" : 3,
+    		"erase_node" : 5,
+    		"erase_link" : 50,
+    		"add_link" : 100
     	}
     },
     "fit" :
     {
-        "tgt" : 2.8
+        "tgt" :  2.8
     },
-    "threads" : 10,
-    "runs" : 10
+    "sys" :
+    {
+    	"threads" : 4,
+    	"runs" : 1
+    },
+	"custom" :
+    {
+    }
 }

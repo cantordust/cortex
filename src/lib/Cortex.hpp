@@ -2,11 +2,9 @@
 #define CORTEX_HPP
 
 #include "Experiment.hpp"
+#include "Data.hpp"
 #include "CmdLine.h"
 
-namespace Cortex
-{
-
-}
+using namespace Cortex;
 
 #endif // CORTEX_HPP

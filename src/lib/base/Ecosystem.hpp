@@ -1,7 +1,7 @@
-#ifndef ECOSYSTEM_HPP
-#define ECOSYSTEM_HPP
+#ifndef CORTEX_ECOSYSTEM_HPP
+#define CORTEX_ECOSYSTEM_HPP
 
-#include "Net.hpp"
+#include "Conf.hpp"
 
 namespace Cortex
 {
@@ -9,163 +9,139 @@ namespace Cortex
 	{
 	public:
 
-		// The age is equal to the
-		// number of evolution rounds.
+		/// = Number of generations
 		uint age;
 
-		ConfigRef cfg;
+		Conf& conf;
 
 	private:
 
-		// Threadpool for evaluating networks in parallel
+		/// Threadpool for evaluating networks in parallel
 		ThreadPool tp;
 
-		// A mapping of species IDs to species objects.
-		hmap<uint, Species> species;
+		/// Species ID : species pointer
+		hmap<uint, SpcPtr> species;
 
-		// A mapping of network IDs to network objects.
-		hmap<uint, Net> nets;
+		/// Network ID : network pointer
+		hmap<uint, NetPtr> nets;
 
-//		// Substrates which represent the layouts
-//		// of the input and output nodes.
-//		// For example, input nodes can be arranged into
-//		// a sensor grid (e.g., mimicking the retina), and
-//		// the output substrate can be mapped to robot effectors.
-//		Substrate sub_in;
-//		Substrate sub_out;
+		/// A toggle variable indicating
+		/// whether the task has been solved
+		flag solved;
 
-		struct
-		{
-			// Synchronisation variables
-			std::mutex mtx;
-			std::condition_variable semaphore;
+		/// The network with the highest fitness
+		NetPtr champ;
 
-			// A toggle variable indicating
-			// whether the task has been solved
-			bool solved = false;
+		/// The total number of evaluations for all networks.
+		auint evals;
 
-			// The network with the highest fitness
-			uint champ_id = 0;
-
-			// The total number of evaluations for all networks.
-			uint total_evals = 0;
-
-			// Statistics for species
-			Stat species;
-
-		} stat;
+//		/// Substrates which represent the layouts
+//		/// of the input and output nodes.
+//		/// For example, input nodes can be arranged into
+//		/// a sensor grid (e.g., mimicking the retina), and
+//		/// the output substrate can be mapped to robot effectors.
+//		Substrate in;
+//		Substrate out;
 
 	public:
 
-		Ecosystem(Config& _cfg);
-
-		~Ecosystem();
+		Ecosystem(Conf& _conf);
 
 		template<typename F, typename ... Args>
-		inline void eval(F&& _f, Args&& ... _args)
+		void eval(F&& _f, Args&& ... _args)
 		{
-			dlog() << "\n------------------------"
-				   << "\nGeneration: " << age
-				   << "\nSpecies count: " << species.size()
-				   << "\nNetwork count: " << nets.size()
-				   << "\nHighest fitness: " << ((stat.champ_id == 0) ? 0.0 : nets.at(stat.champ_id).get_abs_fitness())
-				   << "\n\n*** Evaluating networks...";
+			print_stats();
 
-			for (uint i = 0; i < cfg.get().mutation.rate; ++i)
+			for (uint i = 0; i < conf.mut.rate; ++i)
 			{
 				dlog() << "\tRound " << i + 1;
-				for (auto&& net : nets)
+				for (const auto& net : nets)
 				{
-					tp.enqueue(std::forward<F>(_f), std::ref(net.second), std::forward<Args>(_args)...);
+					tp.enqueue(std::forward<F>(_f), std::ref(*net.second), std::forward<Args>(_args)...);
 				}
 
-				// Wait for all networks to be evaluated.
+				/// Wait for all networks to be evaluated.
 				tp.wait();
 
-				if (cfg.get().mutation.enabled)
+				dlog() << "Mutating networks...";
+
+				if (conf.mut.enabled)
 				{
 					mutate();
 				}
 			}
 
-			// Statistics
-			dlog() << "Total evaluations: " << stat.total_evals;
-
-			// Increase the age of the ecosystem by 1
-			++age;
-			for (auto&& net : nets)
-			{
-				++net.second.age;
-			}
-
-			if (is_solved())
-			{
-				print_champ();
-			}
-			else
-			{
-				// Evolve the ecosystem
-				dlog() << "*** Evolving ecosystem";
-				evolve();
-			}
+			evolve();
 		}
 
 		bool init();
-
-		uint get_species_id(const Genotype& _g);
 
 		bool is_solved();
 
 		void mark_solved(const uint _net);
 
-		uint get_champ_id();
-
-		const Net& get_champ();
+		const NetPtr get_champ();
 
 		void inc_evals();
 
-		uint get_total_evals();
+		uint get_evals();
 
 		void print_champ();
 
+		void print_stats();
+
 		uint get_net_count() const;
 
-		uint get_species_count() const;
+		uint get_spc_count() const;
 
-		SpeciesRef get_species(const uint _spc_id);
+		const hmap<uint, NetPtr>& get_nets();
 
-		std::vector<NetRef> get_nets();
+		const NetPtr get_net(const uint _net_id);
+
+		const SpcPtr get_spc(const Genotype& _g);
+
+		const SpcPtr get_spc(const uint _spc_id);
 
 		void erase_net(const uint _net_id);
 
 	private:
 
-		// Evolve the ecosystem by applying the
-		// crossover and mutation procedures.
+		/// @brief Evolve the ecosystem by applying the
+		/// crossover and mutation procedures.
 		void evolve();
 
-		// Find the network with the highest fitness.
-		// Used in case the current champion is erased.
+		/// @brief Find the network with the highest fitness.
+		/// Used in case the current champion is erased.
 		void find_champ();
 
-		// Update the fitness values of networks
-		// and compute the diversity of species.
+		/// @brief Update the fitness values of networks
+		/// and compute the diversity of species.
 		void update_fitness();
 
-		// Remove empty species
-		void remove_empty_species();
+		/// @brief Remove empty species.
+		void cleanup();
 
-		// Perform crossover
+		/// @brief Perform crossover.
 		void crossover();
 
-		// Mutate networks which were not culled.
+		/// @brief Mutate networks.
 		void mutate();
 
-		void insert_net(const uint _net_id, const uint _spc_id);
+		/// @brief Insert a new network into the ecosystem
+		/// with ID @p _net_id and species ID @p _spc_id
+		///
+		/// @param _net_id The next available network ID.
+		/// @param _spc_id ID of the species that this
+		/// network belongs to.
+		NetPtr insert_net(const uint _net_id, const uint _spc_id);
 
-		void insert_species(const uint _spc_id, const Genotype& _gen);
+		/// @brief Insert a new species into the ecosystem
+		/// with ID @p _spc_id and genotype @p _gen.
+		/// @param _spc_id The next available species ID.
+		/// @param _gen Genotype of the new species.
+		SpcPtr insert_spc(const uint _spc_id, const Genotype& _gen);
 
 	};
 }
 
-#endif // ECOSYSTEM_HPP
+#endif // CORTEX_ECOSYSTEM_HPP

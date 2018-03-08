@@ -1,49 +1,75 @@
-#ifndef STAT_HPP
-#define STAT_HPP
+#ifndef CORTEX_STAT_HPP
+#define CORTEX_STAT_HPP
 
-#include "Globals.hpp"
+#include "Enum.hpp"
 
 namespace Cortex
 {
-	struct Stat
+	class Stat
 	{
-		// @todo Make this a config parameter
-		MAType ma_type = MAType::EMA;
+	public:
 
-		real max = 0.0;
-		real min = 0.0;
-		real abs = 0.0;
+		/// Indicate whether the running average
+		/// of the statistics should be tracked.
+		bool track;
 
-		// Difference from last absolute value
-		real diff = 0.0;
+		///=========================================
+		/// Statistical information about a variable
+		///=========================================
 
-		// Relative value.
-		// This should be computed and set externally.
-		real rel = 0.0;
+		/// The current value.
+		/// This is set each time the stats are updated.
+		real cur;
 
-		// Number of data points
-		uint count = 0;
+		/// Minimal and maximal values encountered so far.
+		real min;
+		real max;
 
-		// EMA coefficient (alpha)
-		real ema_coeff = 0.25;
+		/// Number of data points seen so far.
+		uint count;
 
-		// Window size for WMA.
-		// Also serves as the threshold for
-		// switching from SMA to EMA
-		// Computed as floor(2 / ema_coeff) - 1.
-		uint window_size = 7;
+		/// Mean and variance
+		real mean;
+		real var;
+		real sd;
 
-		real mean = 0.0;
-		real var = 0.0;
-		real sd = 0.0;
+		///=========================================
+		/// Parameters
+		///=========================================
 
-		// @todo Add check for MA type
-		void update(const real _new_point);
+		/// Type of moving average.
+		MA ma;
 
-		real get_progress() const;
+		/// EMA coefficient
+		real alpha;
 
+	public:
+
+		Stat(const MA _ma = MA::EMA, const real _alpha = 0.25);
+
+		/// @brief Add a new data point and update the statistics.
+		void update(const real _new_val);
+
+		/// @brief Compute the relative offset
+		/// $\frac{val - mean}{sd}$
+		real get_offset() const;
+
+		/// @brief Compute the relative offset
+		/// $\frac{val - mean}{sd}$
+		real get_offset(const real _val) const;
+
+		/// Clear all statistical information.
 		void reset();
+
+		std::string validate();
+
+		friend std::ostream& operator << (std::ostream& _strm, const Stat& _stat);
+
+	private:
+
+		template<MA ma>
+		void update(const real _new_point);
 	};
 }
 
-#endif // STAT_HPP
+#endif // CORTEX_STAT_HPP

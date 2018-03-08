@@ -1,123 +1,107 @@
+#include "Conf.hpp"
 #include "Node.hpp"
 #include "Link.hpp"
 
 namespace Cortex
 {
-	Link::Link(Node& _src, Node& _tgt, const LT _type, ConfigRef& _cfg)
+	Link::Link(Node& _src, Node& _tgt, const LT _type)
 		:
-		  type(_type),
 		  src(_src),
 		  tgt(_tgt),
-		  weight(_cfg, _cfg.get().link.weight)
-	{
-		add_to_target();
-	}
+		  type(_type),
+		  weight(_src.conf.link.weight)
+	{}
 
 	Link::Link(Node& _src, Node& _tgt, const Link& _other)
 		:
-		  type(_other.type),
 		  src(_src),
 		  tgt(_tgt),
+		  type(_other.type),
 		  weight(_other.weight)
+	{}
+
+	/// @todo Implementation
+	template<>
+	void Link::ltp<NT::Classical>()
 	{
-		add_to_target();
+		/// Both excitatory and inhibitory links are potentiated
 	}
 
-	inline void Link::add_to_target()
+	/// @todo Implementation
+	template<>
+	void Link::ltd<NT::Classical>()
 	{
-		tgt.links.sources.at(type).at(src.id.role).emplace(src.id.idx, *this);
+		/// Excitatory links are depressed, inhibitory links are potentiated
 	}
 
-	inline void Link::remove_from_target()
+	template<>
+	void Link::ltp<NT::Spiking>()
 	{
-		tgt.links.sources.at(type).at(src.id.role).erase(src.id.idx);
+		/// Both excitatory and inhibitory links are potentiated
+		real dw(src.conf.stdp.lr * std::exp( - (tgt.axon.time - src.axon.time) / src.conf.stdp.tau ));
+		if (dw > src.conf.stdp.cutoff)
+		{
+			weight.update(weight.val() + dw * (weight.val() >= 0.0 ?
+												   weight.pc.ubound - weight.val() :
+												   weight.pc.lbound - weight.val()) );
+		}
+	}
+
+	template<>
+	void Link::ltd<NT::Spiking>()
+	{
+		/// Excitatory links are depressed, inhibitory links are potentiated
+		real dw(src.conf.stdp.lr * std::exp( - (src.axon.time - tgt.axon.time) / src.conf.stdp.tau ));
+		if (dw > src.conf.stdp.cutoff)
+		{
+			weight.update(weight.val() + dw * (weight.val() >= 0.0 ?
+												   - src.conf.stdp.dp_ratio * weight.val() :
+												   weight.pc.lbound - weight.val() ) );
+		}
+	}
+
+	template<>
+	real Link::signal<NT::Classical>()
+	{
+		if (src.conf.stdp.enabled)
+		{
+			ltd<NT::Classical>();
+		}
+		return weight.val() * src.axon.val.cur;
+	}
+
+	template<>
+	real Link::signal<NT::Spiking>()
+	{
+		if (src.conf.stdp.enabled)
+		{
+			ltd<NT::Spiking>();
+		}
+		return weight.val();
 	}
 
 	std::ostream& operator<< (std::ostream& _strm, const Link& _link)
 	{
-		_strm << " weight: " << _link.weight.cur();
-		return _strm;
+		return _strm << "\t  ,-> (" << _link.type << ") "
+					 << _link.tgt.id
+					 << " (" << _link.weight.val() << ")\n";
 	}
 
-	// Links struct methods
-	Links::Links()
+	void Links::add(const NodePtr& _src, const NodePtr& _tgt, const LT _lt)
 	{
-		// Iterate over link types
-		for (const auto& ltype : Enum<LT>::entries)
-		{
-			for (const auto& nrole : Enum<NR>::entries)
-			{
-				// Iterate over source-target
-				// role pairs for this link type
-				targets[ltype.first][nrole.first] = hmap<uint, LinkPtr>();
-				sources[ltype.first][nrole.first] = hmap<uint, LinkRef>();
-			}
-		}
+		targets[_tgt] = std::make_shared<Link>(*_src, *_tgt, _lt);
+		_tgt->links.sources[_src] = targets.at(_tgt);
 	}
 
-	inline void Links::add(const LT _lt, Node& _src, Node& _tgt, ConfigRef& _cfg)
+	void Links::add(const NodePtr& _src, const NodePtr& _tgt, const LinkPtr& _other)
 	{
-		targets.at(_lt).at(_tgt.id.role).emplace(_tgt.id.idx, std::make_unique<Link>(_src, _tgt, _lt, _cfg));
+		targets[_tgt] = std::make_shared<Link>(*_src, *_tgt, *_other);
+		_tgt->links.sources[_src] = targets.at(_tgt);
 	}
 
-	inline void Links::add(const LT _lt, Node& _src, Node& _tgt, const Link& _other)
+	void Links::erase(const NodePtr& _src, const NodePtr& _tgt)
 	{
-		targets.at(_lt).at(_tgt.id.role).emplace(_tgt.id.idx, std::make_unique<Link>(_src, _tgt, _other));
-	}
-
-	inline void Links::erase(const LT _lt, const NodeID& _id)
-	{
-		// Remove the link ref from the target
-		targets.at(_lt).at(_id.role).at(_id.idx)->remove_from_target();
-
-		// Remove the actual link
-		targets.at(_lt).at(_id.role).erase(_id.idx);
-	}
-
-	void Links::reindex(const NodeID& _id)
-	{
-		for (auto& ltype : targets)
-		{
-			hmap<uint, LinkPtr> tmp_map;
-			for (auto it = ltype.second.at(_id.role).begin(); it != ltype.second.at(_id.role).end(); )
-			{
-				if (it->first > _id.idx)
-				{
-					tmp_map.emplace(it->first - 1, std::move(it->second));
-					it = ltype.second.at(_id.role).erase(it);
-				}
-				else
-				{
-					++it;
-				}
-			}
-
-			for (auto& lnk : tmp_map)
-			{
-				ltype.second.at(_id.role).emplace(lnk.first, std::move(lnk.second));
-			}
-		}
-
-		for (auto& ltype : sources)
-		{
-			hmap<uint, LinkRef> tmp_map;
-			for (auto it = ltype.second.at(_id.role).begin(); it != ltype.second.at(_id.role).end(); )
-			{
-				if (it->first > _id.idx)
-				{
-					tmp_map.emplace(it->first - 1, it->second);
-					it = ltype.second.at(_id.role).erase(it);
-				}
-				else
-				{
-					++it;
-				}
-			}
-
-			for (auto& lnk : tmp_map)
-			{
-				ltype.second.at(_id.role).emplace(lnk.first, lnk.second);
-			}
-		}
+		targets.erase(_tgt);
+		_tgt->links.sources.erase(_src);
 	}
 }

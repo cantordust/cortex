@@ -1,70 +1,52 @@
-#ifndef FITNESS_HPP
-#define FITNESS_HPP
+#ifndef CORTEX_FITNESS_HPP
+#define CORTEX_FITNESS_HPP
 
-#include "Config.hpp"
+#include "Stat.hpp"
 
 namespace Cortex
 {
 	class Fitness
 	{
+	public:
+
+		Conf& conf;
+
+		/// Statistics on the absolute fitness
+		Stat abs;
+
+		/// Statistics on the relative fitness
+		Stat rel;
+
 	private:
 
-		Config& cfg;
-
-		// Generic statistics including the current value
-		Stat stat;
-
-		// The effect of the last mutation.
-		// Used for trend tracking.
+		/// The effect of the last mutation.
+		/// Used for trend tracking.
 		Eff eff;
 
-		// Parameters mutated in the
-		// last round of evolution.
+		/// Parameters mutated in the
+		/// last round of evolution.
 		std::vector<ParamRef> params;
 
 	public:
 
-		Fitness(Config& _cfg);
+		Fitness(Conf& _conf);
 
-		inline bool is_solved() const
-		{
-			return stat.abs >= cfg.fit.tgt;
-		}
+		void reset();
 
-		inline void add_param(Param& _p)
-		{
-			params.emplace_back(_p);
-		}
+		bool is_solved() const;
 
-		inline real progress() const
-		{
-			return stat.get_progress();
-		}
+		void add_param(Param& _p);
 
-		inline real get_cur() const
-		{
-			return stat.abs;
-		}
+		void feedback(const real _val);
 
-		void set_cur(const real _cur);
+	private:
 
-		inline real get_diff() const
-		{
-			return stat.diff;
-		}
-
-		inline real get_rel() const
-		{
-			return stat.rel;
-		}
-
-		inline void set_rel(const real _rel)
-		{
-			stat.rel = _rel;
-		}
-
+		template<Opt opt>
 		void feedback();
+
+		friend class Net;
+		friend Param;
 	};
 }
 
-#endif // FITNESS_HPP
+#endif // CORTEX_FITNESS_HPP

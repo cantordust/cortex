@@ -1,5 +1,5 @@
 {
-	"ecosystem":
+	"eco":
 	{
 		"init":
 		{
@@ -11,7 +11,7 @@
 			"size": 150
 		}
 	},
-	"species" :
+	"spc" :
 	{
 		"init" :
 		{
@@ -47,7 +47,7 @@
 	{
 		"rate" : 0.1
 	},
-	"mutation" :
+	"mut" :
 	{
 		"rate" : 5,
 		"prob":
@@ -66,21 +66,19 @@
 		},
 		"scale" : 0.05
 	},
-	
+
 	"threads" : 4,
 	"runs" : 1,
-	
+
 	"custom" :
-	{	
+	{
 		"dt" : 0.01,
-		
 		"max":
 		{
 			"force": 10.0,
 			"theta": 36.0,
 			"steps": 100000
 		},
-		
 		"def":
 		{
 			"track_len" : 4.8,
@@ -99,7 +97,6 @@
 			"coupled" : false,
 			"ks" : []
 		},
-		
 		"env":
 		{
 			"track_len" : 4.8,
@@ -109,7 +106,6 @@
 					"mass" : 1.0,
 					"pos" : 0.3,
 					"vel" : 0.0,
-					
 					"poles" :
 					[
 						{
@@ -124,7 +120,6 @@
 				}
 			]
 		},
-		
 		"gen":
 		{
 			"theta":

@@ -1,6 +1,9 @@
 #include "Vars.hpp"
 
-Vars::Vars()
+namespace CartPole
 {
-
+	real Rnd::jitter()
+	{
+		return nd(rng);
+	}
 }

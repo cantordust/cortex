@@ -1,50 +1,49 @@
-#ifndef PARAM_HPP
-#define PARAM_HPP
+#ifndef CORTEX_PARAM_HPP
+#define CORTEX_PARAM_HPP
 
-#include "Config.hpp"
+#include "Globals.hpp"
+#include "ParamConf.hpp"
+#include "Stat.hpp"
 
 namespace Cortex
 {
-	// Generic parameter for parameters such as
-	// synaptic weight and node time constant.
-
-	class Fitness;
-
+	/// @class Param Generic class for parameters such as
+	/// synaptic weight and node time constant.
 	class Param
 	{
-	public:
-
-		ConfigRef cfg;
-
 	private:
 
-		// Parameter statistics
+		ParamConf& pc;
+
+		/// Parameter statistics
 		Stat stat;
 
-		// Parameter configuration
-		ParamConf pconf;
+		/// SD for mutation
+		real sd;
 
-		// Action to take at the next mutation
+		/// Action to take at the next mutation event
 		Act act;
 
-		// Indicates how important this parameter is
-		// in terms of contribution to the fitness.
-		// @todo Use in crossover
+		/// Indicates how important this parameter is
+		/// in terms of contribution to the fitness.
+		/// @todo Use in crossover
 		real importance;
 
 		friend class Fitness;
+		friend class Link;
+		friend class Node;
 
 	public:
 
-		Param(const ConfigRef& _cfg, const ParamConf& _pconf);
+		Param(ParamConf& _pc);
 
-		const Stat& get_stat() const;
+		Param(const Param& _other);
 
-		void set(const real _cur);
+		void init();
 
-		void update(const real _delta);
+		void update(const real _new_val);
 
-		real cur() const;
+		real val() const;
 
 		void inc_sd();
 
@@ -58,7 +57,12 @@ namespace Cortex
 
 		void anneal(const real _abs_fit);
 
+	private:
+
+		template<Opt opt>
+		void optimise(const Fitness& _fit);
+
 	};
 }
 
-#endif // PARAM_HPP
+#endif // CORTEX_PARAM_HPP

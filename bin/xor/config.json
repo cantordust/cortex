@@ -1,5 +1,5 @@
 {
-    "ecosystem":
+    "eco":
     {
         "init":
         {
@@ -11,11 +11,15 @@
             "size": 150
         }
     },
-    "species" :
+    "spc" :
     {
     	"init" :
     	{
     		"count" : 1
+    	},
+    	"max" :
+    	{
+			"count" : 5
     	}
     },
     "net" :
@@ -40,7 +44,7 @@
 		"rec" : false,
 		"weight" :
 		{
-			"sd": 2.0
+			"sd": 1.0
 		}
 	},
 	"mating" :
@@ -55,15 +59,20 @@
     		"erase_node" : 10,
     		"add_link" : 50,
     		"erase_link" : 50,
-    		"weight" : 1000,
-    		"tau" : 0,
-    		"fn" : 0
-    	}
+    		"weight" : 1000
+    	},
+    	"rate" : 3
     },
     "fit" :
     {
         "tgt" : 4.0
     },
-    "threads" : 10,
-    "runs" : 100
+    "sys" :
+    {
+    	"threads" : 4,
+    	"runs" : 1
+    },
+    "custom":
+    {
+    }
 }

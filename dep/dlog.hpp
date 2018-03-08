@@ -6,8 +6,8 @@
 namespace Async
 {
 	template<typename T> using sp = std::shared_ptr<T>;
-	typedef std::packaged_task<void()> ptask;
-	typedef std::function<void()> vfun;
+	using ptask = std::packaged_task<void()>;
+	using vfun = std::function<void()>;
 
 	/// Mutex for accessing the associated stream.
 	static std::mutex output_mutex;
@@ -78,19 +78,12 @@ namespace Async
 
 			ThreadPool tp;
 
-			uint min_workers;
-			uint max_workers;
-
 		public:
 
 			Printer(const uint _workers = std::thread::hardware_concurrency())
 				:
-				  tp(_workers),
-				  min_workers(4),
-				  max_workers(std::thread::hardware_concurrency() > 16 ? 16 : std::thread::hardware_concurrency())
-			{
-
-			}
+				  tp(_workers)
+			{}
 
 			~Printer()
 			{
@@ -101,15 +94,6 @@ namespace Async
 			{
 				glock queue_lock(printer.mtx);
 				printer.queue.emplace(std::move(_queue));
-
-				if (tp.tasks_enqueued() > 4 * tp.worker_count())
-				{
-					tp.resize(tp.tasks_enqueued() > max_workers ? max_workers : tp.tasks_enqueued());
-				}
-				else if (tp.tasks_enqueued() < tp.worker_count() / 4)
-				{
-					tp.resize(tp.tasks_enqueued() > min_workers ? tp.tasks_enqueued() : min_workers);
-				}
 
 				tp.enqueue([&]
 				{
@@ -137,7 +121,6 @@ namespace Async
 				static Printer p;
 				return p;
 			}
-
 		};
 
 	public:

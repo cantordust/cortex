@@ -1,11 +1,18 @@
-#ifndef AXON_HPP
-#define AXON_HPP
+#ifndef CORTEX_AXON_HPP
+#define CORTEX_AXON_HPP
 
+#include "Globals.hpp"
+#include "Stat.hpp"
 
-class Axon
+namespace Cortex
 {
-public:
-	Axon();
-};
+	struct Axon
+	{
+		real time;
+		Stat val;
 
-#endif // AXON_HPP
+		Axon(Stat& _stat);
+	};
+}
+
+#endif // CORTEX_AXON_HPP

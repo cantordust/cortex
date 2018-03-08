@@ -1,91 +1,102 @@
+#include "Conf.hpp"
 #include "Param.hpp"
 #include "Fitness.hpp"
 
 namespace Cortex
 {
-	Param::Param(const ConfigRef& _cfg, const ParamConf& _pconf)
+	Param::Param(ParamConf& _pc)
 		:
-		  cfg(_cfg),
-		  pconf(_pconf),
+		  pc(_pc),
+		  stat(_pc.stat),
+		  sd(_pc.sd),
 		  importance(0.0)
 	{
-		switch (pconf.dist)
+		init();
+	}
+
+	Param::Param(const Param& _other)
+		:
+		  pc(_other.pc),
+		  stat(_other.stat),
+		  sd(_other.sd),
+		  importance(0.0)
+	{
+		stat.reset();
+		stat.update(_other.stat.cur);
+	}
+
+	void Param::init()
+	{
+		real init_val(0.0);
+
+		switch (pc.dist)
 		{
-		case InitDist::Normal:
-			pconf.init = cfg.get().rnd_nd(pconf.mean, pconf.sd);
+		case Dist::Normal:
+			init_val = pc.conf.rnd_nd(pc.mean, pc.sd);
 			break;
 
-		case InitDist::Uniform:
-			pconf.init = cfg.get().rnd_real(pconf.min, pconf.max);
+		case Dist::Uniform:
+			init_val = pc.conf.rnd_real(pc.lbound, pc.ubound);
 			break;
 
-		case InitDist::Fixed:
+		case Dist::Fixed:
+			init_val = pc.val;
+			break;
+
 		default:
 			break;
 		}
 
-		if (pconf.init < pconf.min)
+		if (init_val <= pc.lbound ||
+			init_val >= pc.ubound)
 		{
-			pconf.init = pconf.min;
+			init_val = (pc.ubound - pc.lbound) / 2.0;
 		}
 
-		if (pconf.init > pconf.max)
-		{
-			pconf.init = pconf.max;
-		}
-
-		stat.update(pconf.init);
+		stat.update(init_val);
 	}
 
-	inline const Stat& Param::get_stat() const
+	void Param::update(const real _new_val)
 	{
-		return stat;
+		stat.update(_new_val);
 	}
 
-	inline void Param::set(const real _cur)
+	real Param::val() const
 	{
-		stat.update(_cur);
+		return stat.cur;
 	}
 
-	inline void Param::update(const real _delta)
+	void Param::inc_sd()
 	{
-		stat.update(stat.abs + _delta);
+		sd *= (1.0 + pc.conf.mut.scale);
 	}
 
-	inline real Param::cur() const
+	void Param::dec_sd()
 	{
-		return stat.abs;
+		sd *= (1.0 - pc.conf.mut.scale);
 	}
 
-	inline void Param::inc_sd()
+	template<>
+	void Param::optimise<Opt::Anneal>(const Fitness& _fit)
 	{
-		pconf.sd *= (1.0 + cfg.get().mutation.scale);
+		/// Calculate the temperature to determine the coarseness of the mutation.
+		/// Add a small amount of Gaussian noise, otherwise the SD will end up very close
+		/// to 0 for individuals with fitness close to the target fitness.
+		sd = std::fabs(pc.conf.rnd_nd(0.0, 0.05)) + 1.0 - _fit.abs.cur / pc.conf.fit.tgt;
 	}
 
-	inline void Param::dec_sd()
+	template<>
+	void Param::optimise<Opt::Trend>(const Fitness& _fit)
 	{
-		pconf.sd *= (1.0 - cfg.get().mutation.scale);
-	}
-
-	inline void Param::set_trend(const Eff _eff)
-	{
-		// Flip the action if the fitness has decreased
-		if (_eff == Eff::Dec)
+		/// Flip the action if the fitness has decreased
+		if (_fit.eff == Eff::Dec)
 		{
 			flip_act();
 		}
-		else if (_eff == Eff::Undef)
+		else if (_fit.eff == Eff::Undef)
 		{
 			act = Act::Undef;
 		}
-	}
-
-	inline void Param::anneal(const real _abs_fit)
-	{
-		// Calculate the temperature to determine the coarseness of the mutation.
-		// Add a small amount of Gaussian noise, otherwise the SD will end up very close
-		// to 0 for individuals with fitness close to the target fitness.
-		pconf.sd *= std::fabs(cfg.get().rnd_nd(0.0, 0.01)) + 1.0 - _abs_fit / cfg.get().fit.tgt;
 	}
 
 	bool Param::mutate(Fitness& _fit)
@@ -96,38 +107,40 @@ namespace Cortex
 
 		do
 		{
-			delta = cfg.get().rnd_nd(0.0, pconf.sd);
+			delta = pc.conf.rnd_nd(0.0, sd);
 		} while (delta == 0.0);
 
-		switch (cfg.get().mutation.opt)
+		switch (pc.conf.mut.opt)
 		{
 		case Opt::Trend:
 			switch (act)
 			{
 			case Act::Inc:
-				stat.update(stat.abs + std::fabs(delta));
+				stat.update(stat.cur + std::fabs(delta));
 				break;
 
 			case Act::Dec:
-				stat.update(stat.abs - std::fabs(delta));
+				stat.update(stat.cur - std::fabs(delta));
 				break;
 
 			case Act::Undef:
-				stat.update(stat.abs + delta);
+				stat.update(stat.cur + delta);
 				act = (delta > 0.0 ? Act::Inc : Act::Dec);
 				break;
 			}
 			break;
 
 		case Opt::Anneal:
-		default:
-			stat.update(stat.abs + delta);
+			stat.update(stat.cur + delta);
+			break;
 
+		default:
+			break;
 		}
 
-		// @todo Can a mutation fail (return false;)?
 		return true;
 	}
+
 	void Param::flip_act()
 	{
 		if (act == Act::Inc)

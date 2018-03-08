@@ -2,18 +2,18 @@
 
 int main( int argc, char* argv[] )
 {
-	TCLAP::CmdLine cmd( "Dummy experiment", ' ', version, false );
+	TCLAP::CmdLine cmd( "Dummy experiment", ' ', Cortex::version, true );
 	TCLAP::ValueArg<std::string> config_file( "c", "config", "Configuration file", false, "config.json", "string", cmd );
 	cmd.parse( argc, argv );
 
-	Config config(config_file.getValue());
-	if (!Dummy::setup(config))
+	Conf conf(config_file.getValue());
+	if (!Dummy::setup(conf))
 	{
 		return 0;
 	}
 
 	Experiment dummy_exp;
-	dummy_exp.add(config, &Dummy::eval);
+	dummy_exp.setup(conf, &Dummy::eval);
 	dummy_exp.run();
 
 	dlog() << "Experiment completed, exiting.";

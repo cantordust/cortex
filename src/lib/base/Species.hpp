@@ -1,8 +1,8 @@
-#ifndef SPECIES_HPP
-#define SPECIES_HPP
+#ifndef CORTEX_SPECIES_HPP
+#define CORTEX_SPECIES_HPP
 
-#include "Config.hpp"
 #include "Genotype.hpp"
+#include "Fitness.hpp"
 
 namespace Cortex
 {
@@ -11,83 +11,60 @@ namespace Cortex
 
 	public:
 
-		// Species ID.
 		uint id;
 
-		ConfigRef cfg;
+		Conf& conf;
 
 	private:
 
-		// The genotype is shared by all networks belonging
-		// to this species and can be used to check if a
-		// species already exists.
+		Ecosystem& eco;
+
+		/// The genotype is shared by all networks belonging
+		/// to this species and can be used to check if a
+		/// species already exists.
 		Genotype genotype;
 
-		struct
-		{
-			// ID of the fittest network
-			uint champ_id = 0;
+		/// @brief Fitness of the species
+		Fitness fitness;
 
-			// Secies fitness
-			Stat fit;
-		} stats;
+		/// ID of the fittest network
+		uint champ = 0;
 
-		struct
-		{
-			// Network population
-			emap<uint, NetRef> nets;
+		/// @brief Network population.
+		hmap<uint, NetRef> nets;
 
-			// Elite networks
-			std::vector<uint> elite;
+		/// Network ID | relative fitness
+		hmap<uint, real> fit;
 
-			struct
-			{
-				// Network ID => relative fitness
-				emap<uint, real> fit;
+		/// Network ID | relative unfitness.
+		hmap<uint, real> unfit;
 
-				// Network ID => unfitness.
-				emap<uint, real> unfit;
-			} rank;
-
-			struct
-			{
-				// Absolute fitness of the population
-				Stat abs;
-
-				// Relative fitness of the population
-				Stat rel;
-			} fit;
-		} pop;
+		/// Elite networks
+		std::vector<uint> elite;
 
 	public:
 
 		explicit Species(const uint _id,
 						 const Genotype& _gen,
-						 const ConfigRef& _cfg);
+						 Ecosystem& _eco);
 
-		real compute_fitness();
-
-		real get_abs_fitness() const;
-
-		real get_progress() const;
-
-		real get_rel_fitness() const;
-
-		void set_rel_fitness(const real _rel_fit);
+		real update_fitness();
 
 		bool is_empty() const;
 
-		const auto& get_genome() const;
+		const emap<NR, uint>& get_genome() const;
 
-		const auto& get_genotype() const;
+		const Genotype& get_genotype() const;
 
-		uint get_parent() const;
+		hmap<uint, real> get_mutable_nets() const;
+
+		uint get_rnd_parent() const;
 
 		void add_net(Net& _net);
 
 		uint erase_net();
 
-		void erase_net(const uint _id);
+		void erase_net(const uint _net_id);
 
 		void mutate();
 
@@ -103,11 +80,7 @@ namespace Cortex
 
 		void reset_stats();
 
-		std::vector<uint> get_mutable_nets();
-
-		void compute_abs_net_fitness();
-
-		void compute_rel_net_fitness();
+		friend class Ecosystem;
 	};
 }
-#endif // SPECIES_HPP
+#endif // CORTEX_SPECIES_HPP

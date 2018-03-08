@@ -1,27 +1,29 @@
 cmake_minimum_required(VERSION 3.2)
 
-project(cortex)
+project(cortex CXX)
 
 # Select a custom C++ compiler.
 #
-# Available options: clang++ | g++
+# Recognised options: Clang | GCC
 #
-# Default: clang++
+# Default: Clang
 #
 # NOTE: C++14 support required
 #
 # TODO: Test other compilers (MSVC, MinGW, etc.)
 
-set(default_compiler "clang++")
-set(custom_compiler "clang++")
+set(custom_compiler Clang)
 
 # Select build type
 #
-# Available options: Release | Debug | RelWithDebInfo
+# Recognised options: Release | Debug | RelWithDebInfo
 #
 # Default: Release
 
-set(build_type "Debug")
+set(build_type RelWithDebInfo)
+
+# Use the Armadillo BLAS library
+set(use_blas ON)
 
 # Root directory
 set(root_dir "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Root directory")
@@ -32,38 +34,49 @@ set(cmake_aux_dir "${root_dir}/cmake" CACHE PATH "Root directory for auxiliary C
 # Directory containing sources
 set(src_dir "${root_dir}/src" CACHE PATH "Root directory for source files")
 
-# Directory containing library sources
+# Root directory for library sources
 set(lib_src_dir "${src_dir}/lib" CACHE PATH "Root directory for library sources")
 
-# Directory containing executable sources
+# Root directory for executable sources
 set(bin_src_dir "${src_dir}/bin" CACHE PATH "Root directory for executable sources")
 
-# Directory containing dependencies
+# Root directory for dependencies
 set(dep_dir "${root_dir}/dep" CACHE PATH "Root directory for dependencies")
 
-# Directory containin resources
+# Root directory for resources
 set(res_dir "${root_dir}/res" CACHE PATH "Root directory for resources")
 
-# Directory where the library will be placed
+# Root directory for libraries
 set(lib_dir "${root_dir}/lib")
 
-# Directory where binaries will be placed
+# Root directory for binaries
 set(bin_dir "${root_dir}/bin")
 
-# Various functions
-include("${cmake_aux_dir}/Functions.cmake")
-
-# Compiler options
-include("${cmake_aux_dir}/CompilerOptions.cmake")
-
-# Dependencies
-include("${cmake_aux_dir}/Deps.cmake")
+# System includes
+set(sys_inc_dir "/usr/include")
 
 # Name of the configuration template file
 set(config_template "config.json")
 
 # Library name
 set(lib_name "cortex")
+
+#########################
+# Auxiliary CMake modules
+#########################
+
+# Various functions
+include("${cmake_aux_dir}/Functions.cmake")
+
+# Dependencies
+include("${cmake_aux_dir}/Deps.cmake")
+
+# Compiler options
+include("${cmake_aux_dir}/CompilerOptions.cmake")
+
+#######################################
+# Gather all header files for inclusion
+#######################################
 
 # Directories containing library headers
 header_dirs(lib_header_dirs ${lib_src_dir})

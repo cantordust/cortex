@@ -23,7 +23,7 @@ endmacro()
 # Compile the library
 function(setup_lib)
 
-	message(STATUS "*** Configuring library ${lib_name}")
+	msg("Configuring library ${lib_name}")
 
 	file(GLOB_RECURSE lib_src ${lib_src_dir}/*.cpp ${lib_src_dir}/*.hpp)
 
@@ -32,13 +32,13 @@ function(setup_lib)
 	set_target_properties(${lib_name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${lib_dir})
 	target_include_directories(
 		${lib_name}
-		PRIVATE
+		PUBLIC
 		${lib_header_dirs}
 		${dep_header_dirs}
 		)
-#	get_property(inc_dirs TARGET ${lib_name} PROPERTY INCLUDE_DIRECTORIES)
+	get_property(inc_dirs TARGET ${lib_name} PROPERTY INCLUDE_DIRECTORIES)
 #	foreach(incdir ${inc_dirs})
-#		message(STATUS "*** Included dir: ${incdir}")
+#		msg("Included dir: ${incdir}")
 #	endforeach()
 
 endfunction()
@@ -66,6 +66,7 @@ function(setup_bin)
 			${bin_header_dirs}
 			${dep_header_dirs}
 			)
+
 #		get_property(inc_dirs TARGET ${bin_name} PROPERTY INCLUDE_DIRECTORIES)
 #		foreach(incdir ${inc_dirs})
 #			message(STATUS "*** Included dir: ${incdir}")
@@ -76,7 +77,7 @@ function(setup_bin)
 		endif()
 
 		if(NOT EXISTS ${bin_dir}/${bin_name}/${config_template})
-			message(STATUS "*** Configured template ${bin_dir}/${bin_name}/${config_template}")
+			msg("Configured template ${bin_dir}/${bin_name}/${config_template}")
 			configure_file(${res_dir}/${config_template} ${bin_dir}/${bin_name}/${config_template})
 		endif()
 	endforeach()
@@ -85,7 +86,13 @@ endfunction()
 
 # Issue warning messages
 function(warning messages)
-	message(STATUS "*** Warning *** ")
+	message(STATUS "### Warning ###")
+	foreach(message	${messages})
+		message(STATUS "### ${message}")
+	endforeach()
+endfunction()
+
+function(msg messages)
 	foreach(message	${messages})
 		message(STATUS "*** ${message}")
 	endforeach()

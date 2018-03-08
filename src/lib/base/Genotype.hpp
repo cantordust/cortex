@@ -1,7 +1,7 @@
-#ifndef GENOTYPE_HPP
-#define GENOTYPE_HPP
+#ifndef CORTEX_GENOTYPE_HPP
+#define CORTEX_GENOTYPE_HPP
 
-#include "Config.hpp"
+#include "Globals.hpp"
 
 namespace Cortex
 {
@@ -13,7 +13,7 @@ namespace Cortex
 
 	public:
 
-		Genotype(const emap<NR, uint>& _genome);
+		Genotype(const Conf& _conf);
 
 		bool add(const NR _nr, const uint _count = 1);
 
@@ -23,10 +23,9 @@ namespace Cortex
 
 		uint count(const NR _nr);
 
-		const auto& get_genome() const;
+		const emap<NR, uint>& get_genome() const;
 
 		bool operator == (const Genotype& _other);
 	};
-
 }
-#endif // GENOTYPE_HPP
+#endif // CORTEX_GENOTYPE_HPP

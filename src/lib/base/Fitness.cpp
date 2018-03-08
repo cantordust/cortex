@@ -1,24 +1,57 @@
+#include "Conf.hpp"
 #include "Param.hpp"
 #include "Fitness.hpp"
 
 namespace Cortex
 {
-	Fitness::Fitness(Config& _cfg)
+	Fitness::Fitness(Conf& _conf)
 		:
-		  cfg(_cfg),
+		  conf(_conf),
+		  abs(_conf.fit.stat),
 		  eff(Eff::Undef)
+	{}
+
+	void Fitness::reset()
 	{
-		stat.ema_coeff = cfg.fit.ema.coeff;
-		stat.window_size = std::floor(2.0 / stat.ema_coeff) - 1;
+		abs.reset();
+		rel.reset();
 	}
 
-	void Fitness::set_cur(const real _cur)
+	bool Fitness::is_solved() const
 	{
-		if (_cur > stat.abs)
+		return abs.cur >= conf.fit.tgt;
+	}
+
+	void Fitness::add_param(Param& _p)
+	{
+		params.push_back(_p);
+	}
+
+	template<>
+	void Fitness::feedback<Opt::Anneal>()
+	{
+		for (const auto& param : params)
+		{
+			param.get().optimise<Opt::Anneal>(*this);
+		}
+	}
+
+	template<>
+	void Fitness::feedback<Opt::Trend>()
+	{
+		for (const auto& param : params)
+		{
+			param.get().optimise<Opt::Trend>(*this);
+		}
+	}
+
+	void Fitness::feedback(const real _val)
+	{
+		if (_val > abs.cur)
 		{
 			eff = Eff::Inc;
 		}
-		else if (_cur < stat.abs)
+		else if (_val < abs.cur)
 		{
 			eff = Eff::Dec;
 		}
@@ -26,36 +59,26 @@ namespace Cortex
 		{
 			eff = Eff::Undef;
 		}
-		stat.update(_cur);
-		feedback();
-	}
+		abs.update(_val);
 
-	void Fitness::feedback()
-	{
-		switch (cfg.mutation.opt)
+		switch (conf.mut.opt)
 		{
 		case Opt::Anneal:
-			for (auto&& param : params)
-			{
-				param.get().anneal(stat.abs);
-			}
+			feedback<Opt::Anneal>();
 			break;
 
 		case Opt::Trend:
-			for (auto&& param : params)
-			{
-				param.get().set_trend(eff);
-			}
+			feedback<Opt::Trend>();
 			break;
 
 		default:
 			break;
 		}
 
-		// Increase the SD if we haven't made any progress
-		if (progress() <= 0.0)
+		/// Increase the SD if we haven't made any progress
+		if (std::tanh(abs.get_offset()) <= 0.0)
 		{
-			for (auto&& param : params)
+			for (const auto& param : params)
 			{
 				param.get().inc_sd();
 			}

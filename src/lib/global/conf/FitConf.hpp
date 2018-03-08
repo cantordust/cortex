@@ -1,11 +1,34 @@
-#ifndef FITCONF_HPP
-#define FITCONF_HPP
+#ifndef CORTEX_FITCONF_HPP
+#define CORTEX_FITCONF_HPP
 
+#include "Globals.hpp"
+#include "Stat.hpp"
 
-class FitConf
+namespace Cortex
 {
-public:
-	FitConf();
-};
+	class FitConf final
+	{
+	public:
 
-#endif // FITCONF_HPP
+		Conf& conf;
+
+		/// The target fitness that all
+		/// networks are striving towards.
+		real tgt;
+
+		/// Fitness statistics
+		Stat stat;
+
+	public:
+
+		FitConf(Conf& _conf);
+
+		void set_defaults();
+
+		std::string validate();
+
+		friend std::ostream& operator << (std::ostream& _strm, const FitConf& _conf);
+	};
+}
+
+#endif // CORTEX_FITCONF_HPP

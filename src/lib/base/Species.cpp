@@ -1,217 +1,195 @@
+#include "Ecosystem.hpp"
+#include "Conf.hpp"
 #include "Species.hpp"
 #include "Net.hpp"
-#include "Functions.hpp"
 
 namespace Cortex
 {
 
 	Species::Species(const uint _id,
 					 const Genotype& _gen,
-					 const ConfigRef& _cfg)
+					 Ecosystem& _eco)
 		:
 		  id(_id),
-		  cfg(_cfg),
-		  genotype(_gen)
+		  conf(_eco.conf),
+		  eco(_eco),
+		  genotype(_gen),
+		  fitness(_eco.conf)
 	{}
 
-	inline void Species::add_net(Net& _net)
+	void Species::add_net(Net& _net)
 	{
-		//		dlog() << "(Species) Adding network " << _net.id << " to species " << id;
-		pop.nets.emplace(_net.id, _net);
+		dlog() << "(Species) Adding network " << _net.id << " to species " << id;
+		nets.emplace(_net.id, std::ref(_net));
 	}
 
-	// Erase a random network
-	inline uint Species::erase_net()
+	/// Erase a random network
+	uint Species::erase_net()
 	{
-		if (pop.rank.unfit.size() > 0)
+		if (unfit.empty())
 		{
-			uint net_id(cfg.get().w_dist(pop.rank.unfit));
-			erase_net(net_id);
-			return net_id;
+			return 0;
 		}
-		return 0;
+		uint net_id(conf.w_dist(unfit));
+		erase_net(net_id);
+		return net_id;
 	}
 
-	// Erase a network by ID
-	inline void Species::erase_net(const uint _id)
+	/// Erase a network by ID
+	void Species::erase_net(const uint _net_id)
 	{
-		pop.nets.erase(_id);
-		pop.rank.fit.erase(_id);
-		pop.rank.unfit.erase(_id);
-	}
-
-	inline void Species::mutate()
-	{
-		for (const auto net_id : get_mutable_nets())
+		nets.erase(_net_id);
+		fit.erase(_net_id);
+		unfit.erase(_net_id);
+		for (auto it = elite.begin(); it != elite.end(); )
 		{
-			pop.nets.at(net_id).get().mutate();
+			if (*it == _net_id)
+			{
+				elite.erase(it);
+				break;
+			}
+			else
+			{
+				++it;
+			}
+		}
+		if (champ == _net_id)
+		{
+			champ = 0;
 		}
 	}
 
-	inline real Species::mating_chance()
+	void Species::mutate()
 	{
-		return stats.fit.rel;
+		reset_stats();
+		update_fitness();
+
+		for (const auto& net : get_mutable_nets())
+		{
+			nets.at(net.first).get().mutate();
+		}
 	}
 
-	inline real Species::culling_chance()
+	real Species::mating_chance()
 	{
-		return 1.0 - stats.fit.rel;
+		return fitness.rel.cur;
 	}
 
-	inline bool Species::operator ==(const Genotype& _gen)
+	real Species::culling_chance()
+	{
+		return 1.0 - fitness.rel.cur;
+	}
+
+	bool Species::operator == (const Genotype& _gen)
 	{
 		return genotype == _gen;
 	}
 
-	inline bool Species::operator ==(const Species& _other)
+	bool Species::operator == (const Species& _other)
 	{
 		return genotype == _other.genotype;
 	}
 
-	inline void Species::reset_stats()
+	void Species::reset_stats()
 	{
-		stats.fit.reset();
-		pop.elite.clear();
-		pop.rank.fit.clear();
-		pop.rank.unfit.clear();
-		pop.fit.abs.reset();
-		pop.fit.rel.reset();
+		champ = 0;
+		fit.clear();
+		unfit.clear();
+		elite.clear();
 	}
 
-	inline std::vector<uint> Species::get_mutable_nets()
+	real Species::update_fitness()
 	{
-		if (pop.rank.unfit.empty())
+		Stat net_stat(MA::SMA);
+
+		/// Compute the absolute fitness of the species
+		for (const auto& net : nets)
 		{
-			compute_fitness();
+			elite.push_back(net.first);
+
+			real fit(net.second.get().fitness.abs.cur);
+			if (champ == 0 ||
+				fit > net_stat.max)
+			{
+				champ = net.second.get().id;
+			}
+
+			net_stat.update(fit);
 		}
 
-		std::vector<uint> mutable_nets;
-		for (const auto& n : pop.rank.unfit)
+		/// Generate the bourgeoisie
+		if (conf.mut.elite.enabled &&
+			!elite.empty())
 		{
-			mutable_nets.emplace_back(n.first);
-		}
-		return mutable_nets;
-	}
+			/// Sort the elite in descending order
+			std::sort(elite.begin(), elite.end(), [&](uint _lhs, uint _rhs)
+			{
+				return nets.at(_lhs).get().fitness.abs.cur > nets.at(_rhs).get().fitness.abs.cur;
+			});
 
-	inline real Species::compute_fitness()
-	{
-		reset_stats();
-		compute_abs_net_fitness();
-		compute_rel_net_fitness();
-
-		for (const auto& net : pop.nets)
-		{
-			// Sum of the relative fitness values of individuals
-			stats.fit.update(net.second.get().get_rel_fitness());
+			/// Remove mediocre individuals
+			while (elite.size() > std::floor(conf.mut.elite.prop * nets.size()))
+			{
+				elite.pop_back();
+			}
 		}
 
-		return stats.fit.abs;
+		/// Compute the relative fitness of the networks
+		/// belonging to this species
+		for (const auto& net : nets)
+		{
+			/// Compute the relative fitness
+			real rel_fit( Logistic( net.second.get().fitness.abs.get_offset() ) *
+						  Logistic( net_stat.get_offset( net.second.get().fitness.abs.cur ) ) );
+
+			net.second.get().fitness.rel.update(rel_fit);
+
+			fit.emplace(net.first, rel_fit);
+			unfit.emplace(net.first, 1.0 - rel_fit);
+
+			dlog() << "Network " << net.second.get().id << ":"
+				   << "\n\tabs fitness: " << net.second.get().fitness.abs.cur
+				   << "\n\trel fitness: " << net.second.get().fitness.rel.cur
+				   << "\n\tunfitness: " << unfit.at(net.second.get().id);
+		}
+
+		if (conf.mut.elite.enabled)
+		{
+			/// Remove elite nets from the unfitness table
+			for (const auto& e : elite)
+			{
+				unfit.erase(e);
+			}
+		}
+
+		fitness.abs.update(net_stat.mean);
+
+		return fitness.abs.mean;
 	}
 
-	inline real Species::get_abs_fitness() const
+	bool Species::is_empty() const
 	{
-		return stats.fit.abs;
+		return nets.empty();
 	}
 
-	inline real Species::get_progress() const
-	{
-		return stats.fit.get_progress();
-	}
-
-	inline real Species::get_rel_fitness() const
-	{
-		return stats.fit.rel;
-	}
-
-	inline void Species::set_rel_fitness(const real _rel_fit)
-	{
-		stats.fit.rel = _rel_fit;
-	}
-
-	inline bool Species::is_empty() const
-	{
-		return pop.nets.empty();
-	}
-
-	inline const auto& Species::get_genotype() const
+	const Genotype& Species::get_genotype() const
 	{
 		return genotype;
 	}
 
-	inline uint Species::get_parent() const
+	hmap<uint, real> Species::get_mutable_nets() const
 	{
-		if (pop.rank.fit.size() > 0)
-		{
-			return cfg.get().w_dist(pop.rank.fit);
-		}
-		return 0;
+		return unfit;
 	}
 
-	inline const auto& Species::get_genome() const
+	uint Species::get_rnd_parent() const
+	{
+		return (fit.size() > 0) ? conf.w_dist(fit)
+								: 0;
+	}
+
+	const emap<NR, uint>& Species::get_genome() const
 	{
 		return genotype.get_genome();
 	}
-
-	void Species::compute_abs_net_fitness()
-	{
-		for (const auto& net : pop.nets)
-		{
-			pop.elite.push_back(net.first);
-
-			real abs_fit(net.second.get().get_abs_fitness());
-			pop.fit.abs.update(abs_fit);
-
-			if (stats.champ_id == 0 ||
-				abs_fit > pop.fit.abs.max)
-			{
-				stats.champ_id = net.second.get().id;
-			}
-		}
-
-		if (cfg.get().mutation.elitism.enabled &&
-			!pop.elite.empty())
-		{
-			// Sort the elite in descending order
-			std::sort(pop.elite.begin(), pop.elite.end(), [&](const auto& _l, const auto& _r)
-			{
-				return pop.nets.at(_l).get().get_abs_fitness() > pop.nets.at(_r).get().get_abs_fitness();
-			});
-
-			// Remove extraneous individuals
-			while (pop.elite.size() > std::floor(cfg.get().mutation.elitism.prop * pop.nets.size()))
-			{
-				pop.elite.pop_back();
-			}
-		}
-	}
-
-	void Species::compute_rel_net_fitness()
-	{
-		for (const auto& net : pop.nets)
-		{
-			// Compute the relative fitness
-			real rel_fit(sigmoid(net.second.get().get_progress() *  (net.second.get().get_abs_fitness() - pop.fit.abs.mean) / (pop.fit.abs.sd == 0.0 ? 1.0 : pop.fit.abs.sd)));
-			net.second.get().set_rel_fitness(rel_fit);
-			pop.fit.rel.update(rel_fit);
-
-			pop.rank.fit.emplace(net.first, rel_fit);
-			pop.rank.unfit.emplace(net.first, 1.0 - rel_fit);
-
-			dlog() << "Network " << net.second.get().id << ":"
-				   << "\n\tabs fitness: " << net.second.get().get_abs_fitness()
-				   << "\n\trel fitness: " << net.second.get().get_rel_fitness()
-				   << "\n\tunfitness: " << pop.rank.unfit.at(net.second.get().id);
-		}
-
-		if (cfg.get().mutation.elitism.enabled &&
-			!pop.elite.empty())
-		{
-			// Remove the elite from the unfitness table
-			for (const auto& e : pop.elite)
-			{
-				pop.rank.unfit.erase(e);
-			}
-		}
-	}
-
 }
