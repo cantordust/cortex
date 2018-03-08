@@ -64,7 +64,7 @@ namespace Cortex
 	}
 
 	template<typename E, typename std::enable_if<std::is_enum<E>::value>::type ...>
-	std::ostream& operator << (std::ostream& _strm, const E _e)
+	std::ostream& operator << (std::ostream& _strm, const E& _e)
 	{
 		return _strm << to_str<E>(_e);
 	}
