@@ -11,7 +11,7 @@ namespace Cortex
 
 	MatingConf::MatingConf(Conf& _conf)
 		:
-		  conf(_conf)
+		  ConfBase(_conf, "Mating configuration")
 	{
 		set_defaults();
 	}
@@ -22,26 +22,20 @@ namespace Cortex
 		rate = 0.1;
 	}
 
-	std::string MatingConf::validate()
+	void MatingConf::validate()
 	{
-		std::stringstream problems;
-
 		if (enabled)
 		{
-			if (rate == 0.0)
-			{
-				problems << "\t - Invalid mating rate (" << rate << ").\n";
-			}
+			check(rate > 0.0,  "Invalid mating rate (", rate, ")");
 		}
-
-		return problems.str();
 	}
 
 	std::ostream& operator << (std::ostream& _strm, const MatingConf& _conf)
 	{
-		return _strm << "\n--- Mating ---"
-					 << "\nenabled: " << _conf.enabled
-					 << "\nrate: " << _conf.rate
-					 << "\n";
+		_strm << _conf.header()
+			  << "\nenabled: " << _conf.enabled
+			  << "\nrate: " << _conf.rate;
+
+		return _strm << "\n";
 	}
 }

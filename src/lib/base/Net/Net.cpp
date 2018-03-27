@@ -1,4 +1,4 @@
-#include "Ecosystem.hpp"
+#include "Env.hpp"
 #include "Net.hpp"
 #include "Species.hpp"
 #include "Node.hpp"
@@ -14,42 +14,26 @@ namespace Cortex
 
 	Net::Net(const uint _id,
 			 const SpcPtr& _spc,
-			 Ecosystem& _eco)
+			 Env& _env)
 		:
 		  id(_id),
 		  age(1),
-		  conf(_eco.conf),
-		  eco(_eco),
+		  conf(_env.conf),
+		  env(_env),
 		  spc(_spc),
 		  rfield(*this),
-		  fitness(_eco.conf)
+		  fitness(_env.conf)
 	{
 		/// Add the network to its species.
-		spc->add_net(*this);
+		if (spc)
+		{
+			spc->add_net(*this);
+		}
 	}
 
 	Net::~Net()
 	{
 		disconnect();
-	}
-
-	void Net::init()
-	{
-		/// Create the phenome by adding
-		/// nodes to the network
-		for (const auto& role : spc->get_genome())
-		{
-			insert_nodes(role.first, role.second);
-		}
-
-		/// Connect nodes
-		connect();
-
-		/// Create the evaluation graph
-		make_graph();
-
-		/// Initialise the receptive fields
-		rfield.init();
 	}
 
 	const NodePtr Net::get_node(const NodeID& _id)
@@ -99,14 +83,14 @@ namespace Cortex
 
 	real Net::get_fitness() const
 	{
-		return fitness.abs.cur;
+		return fitness.abs.last;
 	}
 
 	void Net::set_fitness(const real _val)
 	{
 		/// The default is to set the absolute fitness
 		fitness.abs.update(_val);
-		eco.inc_evals();
+		env.inc_evals();
 		if (fitness.is_solved())
 		{
 			mark_solved();
@@ -129,7 +113,8 @@ namespace Cortex
 		}
 	}
 
-	void Net::connect()
+	template<>
+	void Net::connect<Layout::Random>()
 	{
 		//		dlog() << "Network " << id << ": connecting...";
 		for (const auto& role : nodes)
@@ -139,6 +124,25 @@ namespace Cortex
 				node->connect();
 			}
 		}
+
+		/// Create the evaluation graph
+		make_graph();
+	}
+
+	template<>
+	void Net::connect<Layout::Layered>()
+	{
+		//		dlog() << "Network " << id << ": connecting...";
+		for (const auto& role : nodes)
+		{
+			for (const auto& node : role.second)
+			{
+				node->connect();
+			}
+		}
+
+		/// Create the evaluation graph
+		make_graph();
 	}
 
 	void Net::disconnect()
@@ -191,7 +195,7 @@ namespace Cortex
 
 	void Net::mark_solved()
 	{
-		eco.mark_solved(id);
+		env.mark_solved(id);
 	}
 
 	real Net::get_saturation()
@@ -227,8 +231,8 @@ namespace Cortex
 		_strm << "ID: " << _net.id << "\n"
 			  << "Age: " << _net.age << "\n"
 			  << "Species: " << _net.spc->id << "\n"
-			  << "Absolute fitness: " << _net.fitness.abs.cur << "\n"
-			  << "Relative fitness: " << _net.fitness.rel.cur << "\n";
+			  << "Absolute fitness: " << _net.fitness.abs.last << "\n"
+			  << "Relative fitness: " << _net.fitness.rel.last << "\n";
 
 		_strm << "Evaluation order: ";
 
@@ -256,5 +260,43 @@ namespace Cortex
 			  << "\n--------------------------------------\n\n";
 
 		return _strm;
+	}
+
+	///=========================================
+	/// Dispatch functions
+	///=========================================
+
+	void Net::init()
+	{
+		if (spc)
+		{
+			/// Create the phenome by adding
+			/// nodes to the network
+			for (const auto& role : spc->get_genome())
+			{
+				insert_nodes(role.first, role.second);
+			}
+		}
+
+		/// Initialise the receptive fields
+		rfield.init();
+
+		/// Connect the network
+		connect();
+	}
+
+	void Net::connect()
+	{
+		switch (conf.net.layout)
+		{
+		case Layout::Layered:
+			return connect<Layout::Layered>();
+
+		case Layout::Random:
+			return connect<Layout::Random>();
+
+		default:
+			return;
+		}
 	}
 }

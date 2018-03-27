@@ -13,7 +13,7 @@ namespace Cortex
 	{
 		for (const auto& link : links.sources)
 		{
-			if (link.second->src.axon.val.cur != 0.0)
+			if (link.second->src.axon.val.last != 0.0)
 			{
 				soma.add<NT::Classical>(link.second);
 			}

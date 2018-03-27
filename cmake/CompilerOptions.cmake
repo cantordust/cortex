@@ -3,10 +3,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(default_compiler clang)
 
-set(default_compiler Clang)
-
-if(NOT (${custom_compiler} STREQUAL "GCC" OR ${custom_compiler} STREQUAL "Clang") )
+if(NOT (${custom_compiler} STREQUAL "gcc" OR ${custom_compiler} STREQUAL "clang") )
 	warning("Invalid C++ compiler '${custom_compiler}'. Defaulting to '${default_compiler}'.")
 	set(custom_compiler ${default_compiler})
 endif()
@@ -15,7 +14,7 @@ set(CMAKE_CXX_COMPILER_ID ${custom_compiler} CACHE STRING "C++ compiler" FORCE)
 msg("Compiler: ${CMAKE_CXX_COMPILER}")
 
 ## TODO:	Platform-aware stdandard library implementation
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "clang")
 #	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
 endif()

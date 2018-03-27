@@ -2,6 +2,11 @@
 
 namespace Cortex
 {
+	Sample::Sample()
+	{
+
+	}
+
 	Sample::Sample(const std::vector<real>& _input, const uint _label)
 		:
 		  label(_label)

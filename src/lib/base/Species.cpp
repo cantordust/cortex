@@ -1,4 +1,4 @@
-#include "Ecosystem.hpp"
+#include "Env.hpp"
 #include "Conf.hpp"
 #include "Species.hpp"
 #include "Net.hpp"
@@ -8,13 +8,13 @@ namespace Cortex
 
 	Species::Species(const uint _id,
 					 const Genotype& _gen,
-					 Ecosystem& _eco)
+					 Env& _env)
 		:
 		  id(_id),
-		  conf(_eco.conf),
-		  eco(_eco),
+		  conf(_env.conf),
+		  env(_env),
 		  genotype(_gen),
-		  fitness(_eco.conf)
+		  fitness(_env.conf)
 	{}
 
 	void Species::add_net(Net& _net)
@@ -72,12 +72,12 @@ namespace Cortex
 
 	real Species::mating_chance()
 	{
-		return fitness.rel.cur;
+		return fitness.rel.last;
 	}
 
 	real Species::culling_chance()
 	{
-		return 1.0 - fitness.rel.cur;
+		return 1.0 - fitness.rel.last;
 	}
 
 	bool Species::operator == (const Genotype& _gen)
@@ -107,7 +107,7 @@ namespace Cortex
 		{
 			elite.push_back(net.first);
 
-			real fit(net.second.get().fitness.abs.cur);
+			real fit(net.second.get().fitness.abs.last);
 			if (champ == 0 ||
 				fit > net_stat.max)
 			{
@@ -118,17 +118,17 @@ namespace Cortex
 		}
 
 		/// Generate the bourgeoisie
-		if (conf.mut.elite.enabled &&
+		if (conf.mut.elite > 0.0 &&
 			!elite.empty())
 		{
 			/// Sort the elite in descending order
 			std::sort(elite.begin(), elite.end(), [&](uint _lhs, uint _rhs)
 			{
-				return nets.at(_lhs).get().fitness.abs.cur > nets.at(_rhs).get().fitness.abs.cur;
+				return nets.at(_lhs).get().fitness.abs.last > nets.at(_rhs).get().fitness.abs.last;
 			});
 
 			/// Remove mediocre individuals
-			while (elite.size() > std::floor(conf.mut.elite.prop * nets.size()))
+			while (elite.size() > std::floor(conf.mut.elite * nets.size()))
 			{
 				elite.pop_back();
 			}
@@ -140,7 +140,7 @@ namespace Cortex
 		{
 			/// Compute the relative fitness
 			real rel_fit( Logistic( net.second.get().fitness.abs.get_offset() ) *
-						  Logistic( net_stat.get_offset( net.second.get().fitness.abs.cur ) ) );
+						  Logistic( net_stat.get_offset( net.second.get().fitness.abs.last ) ) );
 
 			net.second.get().fitness.rel.update(rel_fit);
 
@@ -148,12 +148,12 @@ namespace Cortex
 			unfit.emplace(net.first, 1.0 - rel_fit);
 
 			dlog() << "Network " << net.second.get().id << ":"
-				   << "\n\tabs fitness: " << net.second.get().fitness.abs.cur
-				   << "\n\trel fitness: " << net.second.get().fitness.rel.cur
+				   << "\n\tabs fitness: " << net.second.get().fitness.abs.last
+				   << "\n\trel fitness: " << net.second.get().fitness.rel.last
 				   << "\n\tunfitness: " << unfit.at(net.second.get().id);
 		}
 
-		if (conf.mut.elite.enabled)
+		if (conf.mut.elite > 0.0)
 		{
 			/// Remove elite nets from the unfitness table
 			for (const auto& e : elite)
@@ -188,7 +188,7 @@ namespace Cortex
 								: 0;
 	}
 
-	const emap<NR, uint>& Species::get_genome() const
+	const hmap<NR, uint>& Species::get_genome() const
 	{
 		return genotype.get_genome();
 	}

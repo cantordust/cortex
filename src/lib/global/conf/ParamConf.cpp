@@ -16,7 +16,8 @@ namespace Cortex
 
 	ParamConf::ParamConf(Conf& _conf)
 		:
-		  conf(_conf)
+		  ConfBase(_conf, "Parameter configuration"),
+		  stat(_conf)
 	{
 		set_defaults();
 	}
@@ -31,36 +32,27 @@ namespace Cortex
 		ubound = std::numeric_limits<real>::max();
 	}
 
-	std::string ParamConf::validate()
+	void ParamConf::validate()
 	{
-		std::stringstream problems;
-
-		problems << stat.validate();
-
-		if (dist == Dist::Normal &&
-			sd <= 0.0)
+		if (dist == Dist::Normal)
 		{
-			problems << "\t - Invalid SD for initial distribution (" << sd << ").\n";
+			check(sd > 0.0, "Invalid SD for initial distribution (", sd, ")");
 		}
-
-		if (lbound > ubound)
-		{
-			problems << "\t - Lower bound > upper bound (lbound: " << lbound << ", ubound: " << ubound << ").\n";
-		}
-
-		return problems.str();
+		check (lbound <= ubound, "Lower bound > upper bound (lbound: ", lbound, ", ubound: ", ubound, ")");
+		stat.validate();
 	}
 
-	std::ostream& operator << (std::ostream& _strm, const ParamConf& _c)
+	std::ostream& operator << (std::ostream& _strm, const ParamConf& _conf)
 	{
-		return _strm << "\n--- Parameter ---"
-					 << "\ndist: " << _c.dist
-					 << "\nval: " << _c.val
-					 << "\nmean: " << _c.mean
-					 << "\nsd: " << _c.sd
-					 << "\nlbound: " << _c.lbound
-					 << "\nubound: " << _c.ubound
-					 << "\nstat: " << _c.stat
-					 << "\n";
+		_strm << _conf.header()
+			  << "\ndist: " << _conf.dist
+			  << "\nval: " << _conf.val
+			  << "\nmean: " << _conf.mean
+			  << "\nsd: " << _conf.sd
+			  << "\nlbound: " << _conf.lbound
+			  << "\nubound: " << _conf.ubound
+			  << "\nstat: " << _conf.stat;
+
+		return _strm << "\n";
 	}
 }

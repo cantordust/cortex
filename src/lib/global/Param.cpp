@@ -22,7 +22,7 @@ namespace Cortex
 		  importance(0.0)
 	{
 		stat.reset();
-		stat.update(_other.stat.cur);
+		stat.update(_other.stat.last);
 	}
 
 	void Param::init()
@@ -63,7 +63,7 @@ namespace Cortex
 
 	real Param::val() const
 	{
-		return stat.cur;
+		return stat.last;
 	}
 
 	void Param::inc_sd()
@@ -77,16 +77,16 @@ namespace Cortex
 	}
 
 	template<>
-	void Param::optimise<Opt::Anneal>(const Fitness& _fit)
+	void Param::optimise<ParamOpt::Anneal>(const Fitness& _fit)
 	{
 		/// Calculate the temperature to determine the coarseness of the mutation.
 		/// Add a small amount of Gaussian noise, otherwise the SD will end up very close
 		/// to 0 for individuals with fitness close to the target fitness.
-		sd = std::fabs(pc.conf.rnd_nd(0.0, 0.05)) + 1.0 - _fit.abs.cur / pc.conf.fit.tgt;
+		sd = std::fabs(pc.conf.rnd_nd(0.0, 0.05)) + 1.0 - _fit.abs.last / pc.conf.fit.tgt;
 	}
 
 	template<>
-	void Param::optimise<Opt::Trend>(const Fitness& _fit)
+	void Param::optimise<ParamOpt::ES>(const Fitness& _fit)
 	{
 		/// Flip the action if the fitness has decreased
 		if (_fit.eff == Eff::Dec)
@@ -112,26 +112,26 @@ namespace Cortex
 
 		switch (pc.conf.mut.opt)
 		{
-		case Opt::Trend:
+		case ParamOpt::ES:
 			switch (act)
 			{
 			case Act::Inc:
-				stat.update(stat.cur + std::fabs(delta));
+				stat.update(stat.last + std::fabs(delta));
 				break;
 
 			case Act::Dec:
-				stat.update(stat.cur - std::fabs(delta));
+				stat.update(stat.last - std::fabs(delta));
 				break;
 
 			case Act::Undef:
-				stat.update(stat.cur + delta);
+				stat.update(stat.last + delta);
 				act = (delta > 0.0 ? Act::Inc : Act::Dec);
 				break;
 			}
 			break;
 
-		case Opt::Anneal:
-			stat.update(stat.cur + delta);
+		case ParamOpt::Anneal:
+			stat.update(stat.last + delta);
 			break;
 
 		default:

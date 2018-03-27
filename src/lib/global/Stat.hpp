@@ -9,17 +9,12 @@ namespace Cortex
 	{
 	public:
 
-		/// Indicate whether the running average
-		/// of the statistics should be tracked.
+		/// Indicate whether we should collect statistics
 		bool track;
-
-		///=========================================
-		/// Statistical information about a variable
-		///=========================================
 
 		/// The current value.
 		/// This is set each time the stats are updated.
-		real cur;
+		real last;
 
 		/// Minimal and maximal values encountered so far.
 		real min;
@@ -33,19 +28,21 @@ namespace Cortex
 		real var;
 		real sd;
 
-		///=========================================
-		/// Parameters
-		///=========================================
+	private:
 
-		/// Type of moving average.
+		/// Moving average type
 		MA ma;
 
-		/// EMA coefficient
+		/// "Forgetting rate" for EMA
 		real alpha;
 
 	public:
 
+		Stat(const bool _track = true, const MA _ma = MA::EMA, const real _alpha = 0.25);
+
 		Stat(const MA _ma = MA::EMA, const real _alpha = 0.25);
+
+		Stat(const StatConf& _conf);
 
 		/// @brief Add a new data point and update the statistics.
 		void update(const real _new_val);
@@ -61,7 +58,7 @@ namespace Cortex
 		/// Clear all statistical information.
 		void reset();
 
-		std::string validate();
+		void validate();
 
 		friend std::ostream& operator << (std::ostream& _strm, const Stat& _stat);
 

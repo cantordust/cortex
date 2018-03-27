@@ -11,7 +11,7 @@ namespace Cortex
 
 	NoveltyConf::NoveltyConf(Conf& _conf)
 		:
-		  conf(_conf)
+		  ConfBase(_conf, "Novelty configuration")
 	{
 		set_defaults();
 	}
@@ -22,16 +22,13 @@ namespace Cortex
 		hist_size = 100;
 	}
 
-	std::string NoveltyConf::validate()
+	void NoveltyConf::validate()
 	{
-		std::stringstream problems;
-
-		return problems.str();
 	}
 
 	std::ostream& operator << (std::ostream& _strm, const NoveltyConf& _conf)
 	{
-		return _strm << "\n--- Novelty ---"
+		return _strm << _conf.header()
 					 << "\nenabled: " << _conf.enabled
 					 << "\nhist_size: " << _conf.hist_size
 					 << "\n";

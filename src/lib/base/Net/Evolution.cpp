@@ -1,4 +1,4 @@
-#include "Ecosystem.hpp"
+#include "Env.hpp"
 #include "Species.hpp"
 #include "Net.hpp"
 #include "Node.hpp"
@@ -12,7 +12,7 @@ namespace Cortex
 		auto mut_prob(conf.mut.prob);
 
 		/// This procedure tries to make sure that
-		/// we are not going to end up with an ecosystem
+		/// we are not going to end up with an environment
 		/// full of bloated individuals.
 		/// High saturation indicates that we have
 		/// the potential for adding connections is low,
@@ -57,7 +57,7 @@ namespace Cortex
 			return false;
 		}
 
-		SpcPtr new_spc(eco.get_spc(new_gen));
+		SpcPtr new_spc(env.get_spc(new_gen));
 		if (!new_spc)
 		{
 			return false;
@@ -103,7 +103,7 @@ namespace Cortex
 			return false;
 		}
 
-		SpcPtr new_spc(eco.get_spc(new_gen));
+		SpcPtr new_spc(env.get_spc(new_gen));
 		if (!new_spc)
 		{
 			return false;
@@ -206,7 +206,7 @@ namespace Cortex
 		std::vector<NodePtr> new_nodes;
 		for (uint c = 0; c < _count; ++c)
 		{
-			nodes[_nr].emplace_back(std::make_shared<Node>(_nr, nodes[_nr].size() + 1, *this));
+			nodes[_nr].emplace_back(std::make_shared<Node>(*this, _nr, nodes[_nr].size() + 1));
 			new_nodes.emplace_back(nodes[_nr].back());
 		}
 		return new_nodes;
@@ -218,7 +218,7 @@ namespace Cortex
 		{
 			return nullptr;
 		}
-		nodes[_other->id.role].emplace_back(std::make_shared<Node>(*_other, *this));
+		nodes[_other->id.role].emplace_back(std::make_shared<Node>(*this, *_other));
 		return nodes[_other->id.role].back();
 	}
 

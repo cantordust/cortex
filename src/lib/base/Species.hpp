@@ -17,7 +17,7 @@ namespace Cortex
 
 	private:
 
-		Ecosystem& eco;
+		Env& env;
 
 		/// The genotype is shared by all networks belonging
 		/// to this species and can be used to check if a
@@ -46,13 +46,13 @@ namespace Cortex
 
 		explicit Species(const uint _id,
 						 const Genotype& _gen,
-						 Ecosystem& _eco);
+						 Env& _env);
 
 		real update_fitness();
 
 		bool is_empty() const;
 
-		const emap<NR, uint>& get_genome() const;
+		const hmap<NR, uint>& get_genome() const;
 
 		const Genotype& get_genotype() const;
 
@@ -80,7 +80,7 @@ namespace Cortex
 
 		void reset_stats();
 
-		friend class Ecosystem;
+		friend class Env;
 	};
 }
 #endif // CORTEX_SPECIES_HPP

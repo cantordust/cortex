@@ -4,9 +4,9 @@
 
 namespace Cortex
 {
-	Soma::Soma(Stat& _stat)
+	Soma::Soma(StatConf& _conf)
 		:
-		  stat(_stat),
+		  stat(_conf),
 		  potential(0.0),
 		  last_event(0.0)
 	{}

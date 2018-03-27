@@ -11,7 +11,7 @@ namespace Xor
 		{
 			dlog d;
 			d << "Net " << _net.id << " eval:\n";
-			for ( const auto& sample : _net.conf.data->get_samples())
+			for ( const auto& sample : _net.conf.data.get_samples())
 			{
 				_net.eval(sample);
 				output.push_back( _net.get_output().front() );
@@ -22,7 +22,7 @@ namespace Xor
 						d << " " << val;
 					}
 				}
-				d << ": " << _net.conf.data->get_label(sample.label)
+				d << ": " << _net.conf.data.get_label(sample.label)
 				  << " (net: " << output.back() << ")\n";
 			}
 		}
@@ -46,15 +46,15 @@ namespace Xor
 
 	bool setup(Conf& _conf)
 	{
-		_conf.data->add_sample({0.0, 0.0}, 0);
-		_conf.data->add_sample({1.0, 1.0}, 0);
-		_conf.data->add_sample({0.0, 1.0}, 1);
-		_conf.data->add_sample({1.0, 0.0}, 1);
+		_conf.data.add({0.0, 0.0}, 0);
+		_conf.data.add({1.0, 1.0}, 0);
+		_conf.data.add({0.0, 1.0}, 1);
+		_conf.data.add({1.0, 0.0}, 1);
 
 		{
 			dlog d;
 			d << "Samples: \n";
-			for (const auto& sample : _conf.data->get_samples())
+			for (const auto& sample : _conf.data.get_samples())
 			{
 				for (const auto& i : sample.input)
 				{

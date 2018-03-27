@@ -2,37 +2,45 @@
 
 namespace Cortex
 {
-	template<>
-	EMap<NT> Enum<NT>::entries =
+	template<> emap<OptMode> Enum<OptMode>::entries =
+	{
+		{OptMode::Evolution, "evolution"},
+		{OptMode::GD, "gd"},
+		{OptMode::Hybrid, "hybrid"}
+	};
+	template<> OptMode Enum<OptMode>::undef = OptMode::Undef;
+
+	template<> emap<EnvType> Enum<EnvType>::entries =
+	{
+		{EnvType::Population, "population"},
+		{EnvType::Single, "single"}
+	};
+	template<> EnvType Enum<EnvType>::undef = EnvType::Undef;
+
+	template<> emap<NT> Enum<NT>::entries =
 	{
 		{NT::Classical, "classical"},
 		{NT::Spiking, "spiking"}
 	};
-	template<>
-	NT Enum<NT>::undef = NT::Undef;
+	template<> NT Enum<NT>::undef = NT::Undef;
 
-	template<>
-	EMap<NR> Enum<NR>::entries =
+	template<> emap<NR> Enum<NR>::entries =
 	{
 		{NR::B, "b"},
 		{NR::I, "i"},
 		{NR::O, "o"},
 		{NR::H, "h"}
 	};
-	template<>
-	NR Enum<NR>::undef = NR::Undef;
+	template<> NR Enum<NR>::undef = NR::Undef;
 
-	template<>
-	EMap<LT> Enum<LT>::entries =
+	template<> emap<LT> Enum<LT>::entries =
 	{
 		{LT::Fwd, "fwd"},
 		{LT::Rec, "rec"}
 	};
-	template<>
-	LT Enum<LT>::undef = LT::Undef;
+	template<> LT Enum<LT>::undef = LT::Undef;
 
-	template<>
-	EMap<TF> Enum<TF>::entries =
+	template<> emap<TF> Enum<TF>::entries =
 	{
 		{TF::Abs, "abs"},
 		{TF::Avg, "avg"},
@@ -50,11 +58,9 @@ namespace Cortex
 		{TF::Tanh, "tanh"}
 
 	};
-	template<>
-	TF Enum<TF>::undef = TF::Undef;
+	template<> TF Enum<TF>::undef = TF::Undef;
 
-	template<>
-	EMap<Mut> Enum<Mut>::entries =
+	template<> emap<Mut> Enum<Mut>::entries =
 	{
 		{Mut::AddLink, "add_link"},
 		{Mut::AddNode, "add_node"},
@@ -62,152 +68,134 @@ namespace Cortex
 		{Mut::EraseNode, "erase_node"},
 		{Mut::TF, "tf"},
 		{Mut::Tau, "tau"},
-		{Mut::Weight, "weight"}
+		{Mut::Weight, "weight"},
+		{Mut::FT, "ft"}
 	};
-	template<>
-	Mut Enum<Mut>::undef = Mut::Undef;
+	template<> Mut Enum<Mut>::undef = Mut::Undef;
 
-	template<>
-	EMap<ParamMut> Enum<ParamMut>::entries =
+	template<> emap<ParamMut> Enum<ParamMut>::entries =
 	{
 		{ParamMut::TF, "tf"},
 		{ParamMut::Tau, "tau"},
-		{ParamMut::Weight, "weight"}
+		{ParamMut::Weight, "weight"},
+		{ParamMut::FT, "ft"},
 	};
-	template<>
-	ParamMut Enum<ParamMut>::undef = ParamMut::Undef;
+	template<> ParamMut Enum<ParamMut>::undef = ParamMut::Undef;
 
-	template<>
-	EMap<StructMut> Enum<StructMut>::entries =
+	template<> emap<StructMut> Enum<StructMut>::entries =
 	{
 		{StructMut::AddLink, "add_link"},
 		{StructMut::AddNode, "add_node"},
 		{StructMut::EraseLink, "erase_link"},
 		{StructMut::EraseNode, "erase_node"}
 	};
-	template<>
-	StructMut Enum<StructMut>::undef = StructMut::Undef;
+	template<> StructMut Enum<StructMut>::undef = StructMut::Undef;
 
-	template<>
-	EMap<Opt> Enum<Opt>::entries =
+	template<> emap<ParamOpt> Enum<ParamOpt>::entries =
 	{
-		{Opt::Trend, "trend"},
-		{Opt::Anneal, "anneal"}
+		{ParamOpt::ES, "trend"},
+		{ParamOpt::Anneal, "anneal"}
 	};
-	template<>
-	Opt Enum<Opt>::undef = Opt::Undef;
+	template<> ParamOpt Enum<ParamOpt>::undef = ParamOpt::Undef;
 
-	template<>
-	EMap<Act> Enum<Act>::entries =
+	template<> emap<Act> Enum<Act>::entries =
 	{
 		{Act::Inc, "inc"},
 		{Act::Dec, "dec"},
 	};
-	template<>
-	Act Enum<Act>::undef = Act::Undef;
+	template<> Act Enum<Act>::undef = Act::Undef;
 
-	template<>
-	EMap<Eff> Enum<Eff>::entries =
+	template<> emap<Eff> Enum<Eff>::entries =
 	{
 		{Eff::Inc, "inc"},
 		{Eff::Dec, "dec"},
 	};
-	template<>
-	Eff Enum<Eff>::undef = Eff::Undef;
+	template<> Eff Enum<Eff>::undef = Eff::Undef;
 
-	template<>
-	EMap<Enc> Enum<Enc>::entries =
+	template<> emap<Enc> Enum<Enc>::entries =
 	{
 		{Enc::Direct, "direct"},
 		{Enc::RankOrder, "rank_order"}
 	};
-	template<>
-	Enc Enum<Enc>::undef = Enc::Undef;
+	template<> Enc Enum<Enc>::undef = Enc::Undef;
 
-	template<>
-	EMap<RF> Enum<RF>::entries =
+	template<> emap<RF> Enum<RF>::entries =
 	{
-		{RF::None, "none"},
+		{RF::Direct, "direct"},
 		{RF::ARF, "arf"},
 		{RF::GRF, "grf"},
 		{RF::ST, "st"}
 	};
-	template<>
-	RF Enum<RF>::undef = RF::Undef;
+	template<> RF Enum<RF>::undef = RF::Undef;
 
-	template<>
-	EMap<Search> Enum<Search>::entries =
+	template<> emap<Search> Enum<Search>::entries =
 	{
+		{Search::Loss, "loss"},
 		{Search::Fitness, "fitness"},
-		{Search::Novelty, "novelty"}
+		{Search::Novelty, "novelty"},
+		{Search::Pareto, "pareto"},
 	};
-	template<>
-	Search Enum<Search>::undef = Search::Undef;
+	template<> Search Enum<Search>::undef = Search::Undef;
 
-	template<>
-	EMap<NodeMark> Enum<NodeMark>::entries =
+	template<> emap<NodeMark> Enum<NodeMark>::entries =
 	{
 		{NodeMark::Temp, "temp"},
 		{NodeMark::Perm, "perm"}
 	};
-	template<>
-	NodeMark Enum<NodeMark>::undef = NodeMark::Undef;
+	template<> NodeMark Enum<NodeMark>::undef = NodeMark::Undef;
 
-	template<>
-	EMap<Dist> Enum<Dist>::entries =
+	template<> emap<Dist> Enum<Dist>::entries =
 	{
 		{Dist::Fixed, "fixed"},
 		{Dist::Normal, "normal"},
 		{Dist::Uniform, "uniform"}
 	};
-	template<>
-	Dist Enum<Dist>::undef = Dist::Undef;
+	template<> Dist Enum<Dist>::undef = Dist::Undef;
 
-	template<>
-	EMap<MA> Enum<MA>::entries =
+	template<> emap<MA> Enum<MA>::entries =
 	{
 		{MA::SMA, "sma"},
 		{MA::EMA, "ema"}
 	};
-	template<>
-	MA Enum<MA>::undef = MA::Undef;
+	template<> MA Enum<MA>::undef = MA::Undef;
 
-	template<>
-	EMap<Set> Enum<Set>::entries =
+	template<> emap<Set> Enum<Set>::entries =
 	{
 		{Set::Training, "training"},
-		{Set::Test, "test"},
-		{Set::Validation, "validation"}
+		{Set::Validation, "validation"},
+		{Set::Test, "test"}
 	};
-	template<>
-	Set Enum<Set>::undef = Set::Undef;
+	template<> Set Enum<Set>::undef = Set::Undef;
 
-	template<>
-	EMap<Layout> Enum<Layout>::entries =
+	template<> emap<Layout> Enum<Layout>::entries =
 	{
 		{Layout::Random, "random"},
 		{Layout::Layered, "layered"}
 	};
-	template<>
-	Layout Enum<Layout>::undef = Layout::Undef;
+	template<> Layout Enum<Layout>::undef = Layout::Undef;
 
-	template<>
-	EMap<Task> Enum<Task>::entries =
+	template<> emap<LayerType> Enum<LayerType>::entries =
+	{
+		{LayerType::Regular, "regular"},
+		{LayerType::Conv, "conv"},
+		{LayerType::Pool, "pool"},
+		{LayerType::Softmax, "softmax"}
+	};
+	template<> LayerType Enum<LayerType>::undef = LayerType::Undef;
+
+	template<> emap<DataType> Enum<DataType>::entries =
+	{
+		{DataType::Real, "real"},
+		{DataType::TimeSeries, "time_series"}
+	};
+	template<> DataType Enum<DataType>::undef = DataType::Undef;
+
+	template<> emap<Task> Enum<Task>::entries =
 	{
 		{Task::Classification, "classification"},
 		{Task::Control, "control"},
 		{Task::Prediction, "prediction"},
 		{Task::Regression, "regression"}
 	};
-	template<>
-	Task Enum<Task>::undef = Task::Undef;
-
-	template<>
-	EMap<DataType> Enum<DataType>::entries =
-	{
-		{DataType::Real, "real"},
-		{DataType::TimeSeries, "time_series"}
-	};
-	template<>
-	DataType Enum<DataType>::undef = DataType::Undef;
+	template<> Task Enum<Task>::undef = Task::Undef;
 }

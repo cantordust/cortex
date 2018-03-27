@@ -5,12 +5,10 @@
 
 namespace Cortex
 {
-	class LinkConf final
+	class LinkConf final : public ConfBase
 	{
 
 	public:
-
-		Conf& conf;
 
 		/// Allow / disallow recurrent links
 		bool rec;
@@ -31,9 +29,9 @@ namespace Cortex
 
 		hset<LinkDef> by_tgt(const NR _nr, const LT _lt = LT::Undef);
 
-		void set_defaults();
+		virtual void set_defaults() override final;
 
-		std::string validate();
+		virtual void validate() override final;
 
 		friend std::ostream& operator << (std::ostream& _strm, const LinkConf& _conf);
 	};

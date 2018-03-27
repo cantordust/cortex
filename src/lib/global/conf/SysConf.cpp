@@ -11,7 +11,7 @@ namespace Cortex
 
 	SysConf::SysConf(Conf& _conf)
 		:
-		  conf(_conf)
+		  ConfBase(_conf, "System configuration")
 	{
 		set_defaults();
 	}
@@ -22,23 +22,17 @@ namespace Cortex
 		threads = std::thread::hardware_concurrency();
 	}
 
-	std::string SysConf::validate()
+	void SysConf::validate()
 	{
-		std::stringstream problems;
-
-		if (runs == 0)
-		{
-			problems << "\t - Invalid number of runs (" << runs << ").\n";
-		}
-
-		return problems.str();
+		check(runs > 0, "Invalid number of runs (", runs, ").");
 	}
 
 	std::ostream& operator << (std::ostream& _strm, const SysConf& _conf)
 	{
-		return _strm << "\n--- System ---"
-					 << "\nruns: " << _conf.runs
-					 << "\nthreads: " << _conf.threads
-					 << "\n";
+		_strm << _conf.header()
+			  << "\nruns: " << _conf.runs
+			  << "\nthreads: " << _conf.threads;
+
+		return _strm << "\n";
 	}
 }

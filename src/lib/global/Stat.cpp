@@ -3,25 +3,10 @@
 
 namespace Cortex
 {
-	template<>
-	void load(const json& _j, Stat& _stat)
-	{
-		load(_j, "track", _stat.track);
-		load(_j, "cur", _stat.cur);
-		load(_j, "min", _stat.min);
-		load(_j, "max", _stat.max);
-		load(_j, "count", _stat.count);
-		load(_j, "mean", _stat.mean);
-		load(_j, "var", _stat.var);
-		load(_j, "sd", _stat.sd);
-		load(_j, "ma", _stat.ma);
-		load(_j, "alpha", _stat.alpha);
-	}
-
-	Stat::Stat(const MA _ma, const real _alpha)
+	Stat::Stat(const bool _track, const MA _ma, const real _alpha)
 		:
-		  track(true),
-		  cur(0.0),
+		  track(_track),
+		  last(0.0),
 		  min(0.0),
 		  max(0.0),
 		  count(0),
@@ -30,6 +15,16 @@ namespace Cortex
 		  sd(0.0),
 		  ma(_ma),
 		  alpha(_alpha)
+	{}
+
+	Stat::Stat(const MA _ma, const real _alpha)
+		:
+		  Stat(true, _ma, _alpha)
+	{}
+
+	Stat::Stat(const StatConf& _conf)
+		:
+		  Stat(_conf.track, _conf.ma, _conf.alpha)
 	{}
 
 	template<>
@@ -96,24 +91,30 @@ namespace Cortex
 			sd = std::sqrt(var);
 		}
 
-		cur = _new_val;
+		last = _new_val;
 	}
 
 	real Stat::get_offset() const
 	{
-		return (track) ? (cur - mean) / ((sd == 0.0) ? (mean == 0.0 ? 1.0 : std::abs(mean)) : sd)
-					   : 0;
+		return (track) ? (last - mean) / ((sd > 0.0) ? sd
+														 : (mean != 0.0 ? std::fabs(mean)
+																		: (last != 0.0 ? last
+																					  : 1.0)))
+							: 0;
 	}
 
 	real Stat::get_offset(const real _val) const
 	{
-		return (track) ? (_val - mean) / ((sd == 0.0) ? (mean == 0.0 ? 1.0 : std::abs(mean)) : sd)
-					   : 0;
+		return (track) ? (_val - mean) / ((sd > 0.0) ? sd
+														  : (mean != 0.0 ? std::fabs(mean)
+																		 : (_val != 0.0 ? _val
+																						: 1.0)))
+							: 0;
 	}
 
 	void Stat::reset()
 	{
-		cur = 0.0;
+		last = 0.0;
 		min = 0.0;
 		max = 0.0;
 		count = 0;
@@ -122,34 +123,16 @@ namespace Cortex
 		sd = 0.0;
 	}
 
-	std::string Stat::validate()
-	{
-		std::stringstream problems;
-
-			if (ma == MA::EMA &&
-				(alpha >= 1.0 ||
-				 alpha <= 0.0))
-			{
-				problems << "\t - EMA coefficient must be between 0 and 1 (current value: "
-						 << alpha << ").\n";
-			}
-
-		return problems.str();
-	}
-
 	std::ostream& operator << (std::ostream& _strm, const Stat& _stat)
 	{
-		return _strm << "\n--- Stat ---"
-					 << "\n\ttrack: " << _stat.track
-					 << "\n\tval: " << _stat.cur
-					 << "\n\tmin: " << _stat.min
-					 << "\n\tmax: " << _stat.max
-					 << "\n\tcount: " << _stat.count
-					 << "\n\tmean: " << _stat.mean
-					 << "\n\tvar: " << _stat.var
-					 << "\n\tsd: " << _stat.sd
-					 << "\n\tma: " << _stat.ma
-					 << "\n\talpha: " << _stat.alpha
-					 << "\n";
+		_strm << "\n\tlast value: " << _stat.last
+			  << "\n\tmin: " << _stat.min
+			  << "\n\tmax: " << _stat.max
+			  << "\n\tcount: " << _stat.count
+			  << "\n\tmean: " << _stat.mean
+			  << "\n\tvar: " << _stat.var
+			  << "\n\tsd: " << _stat.sd;
+
+		return _strm  << "\n";
 	}
 }

@@ -49,7 +49,7 @@ namespace Cortex
 		return genome.at(_nr);
 	}
 
-	const emap<NR, uint>& Genotype::get_genome() const
+	const hmap<NR, uint>& Genotype::get_genome() const
 	{
 		return genome;
 	}

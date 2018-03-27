@@ -5,12 +5,10 @@
 
 namespace Cortex
 {
-	class NoveltyConf final
+	class NoveltyConf final : public ConfBase
 	{
 
 	public:
-
-		Conf& conf;
 
 		/// @brief Toggle novelty search on or off.
 		bool enabled;
@@ -22,9 +20,9 @@ namespace Cortex
 
 		NoveltyConf(Conf& _conf);
 
-		void set_defaults();
+		virtual void set_defaults() override final;
 
-		std::string validate();
+		virtual void validate() override final;
 
 		friend std::ostream& operator << (std::ostream& _strm, const NoveltyConf& _conf);
 	};

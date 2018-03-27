@@ -1,16 +1,14 @@
 #ifndef CORTEX_STDPCONF_HPP
 #define CORTEX_STDPCONF_HPP
 
-#include "Globals.hpp"
+#include "ConfBase.hpp"
 
 namespace Cortex
 {
-	class STDPConf final
+	class STDPConf final : public ConfBase
 	{
 
 	public:
-
-		Conf& conf;
 
 		/// @brief Toggle STDP on or off.
 		bool enabled;
@@ -31,9 +29,9 @@ namespace Cortex
 
 		STDPConf(Conf& _conf);
 
-		void set_defaults();
+		virtual void set_defaults() override final;
 
-		std::string validate();
+		virtual void validate() override final;
 
 		friend std::ostream& operator << (std::ostream& _strm, const STDPConf& _conf);
 	};

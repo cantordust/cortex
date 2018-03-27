@@ -1,31 +1,29 @@
 #ifndef CORTEX_MATINGCONF_HPP
 #define CORTEX_MATINGCONF_HPP
 
-#include "Globals.hpp"
+#include "ConfBase.hpp"
 
 namespace Cortex
 {
-	class MatingConf final
+	class MatingConf final : public ConfBase
 	{
 
 	public:
-
-		Conf& conf;
 
 		/// Allow or disallow mating
 		bool enabled;
 
 		/// Rate of producing offspring as a portion
-		/// of the current ecosystem size.
+		/// of the current Environment size.
 		real rate;
 
 	public:
 
 		MatingConf(Conf& _conf);
 
-		void set_defaults();
+		virtual void set_defaults() override final;
 
-		std::string validate();
+		virtual void validate() override final;
 
 		friend std::ostream& operator << (std::ostream& _strm, const MatingConf& _conf);
 	};

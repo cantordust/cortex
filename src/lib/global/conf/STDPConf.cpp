@@ -14,7 +14,7 @@ namespace Cortex
 
 	STDPConf::STDPConf(Conf& _conf)
 		:
-		  conf(_conf)
+		  ConfBase(_conf, "STDP configuration")
 	{
 		set_defaults();
 	}
@@ -28,21 +28,20 @@ namespace Cortex
 		cutoff = 1.0e-3;
 	}
 
-	std::string STDPConf::validate()
+	void STDPConf::validate()
 	{
-		std::stringstream problems;
 
-		return problems.str();
 	}
 
 	std::ostream& operator << (std::ostream& _strm, const STDPConf& _conf)
 	{
-		return _strm << "\n--- STDP ---"
-					 << "\nenabled: " << _conf.enabled
-					 << "\nlr: " << _conf.lr
-					 << "\ndp_ratio: " << _conf.dp_ratio
-					 << "\ntau: " << _conf.tau
-					 << "\ncutoff: " << _conf.cutoff
-					 << "\n";
+		_strm << _conf.header()
+			  << "\nenabled: " << _conf.enabled
+			  << "\nlr: " << _conf.lr
+			  << "\ndp_ratio: " << _conf.dp_ratio
+			  << "\ntau: " << _conf.tau
+			  << "\ncutoff: " << _conf.cutoff;
+
+		return _strm << "\n";
 	}
 }

@@ -7,7 +7,8 @@ namespace Cortex
 	Fitness::Fitness(Conf& _conf)
 		:
 		  conf(_conf),
-		  abs(_conf.fit.stat),
+		  abs(_conf.fit.abs),
+		  rel(_conf.fit.rel),
 		  eff(Eff::Undef)
 	{}
 
@@ -19,7 +20,7 @@ namespace Cortex
 
 	bool Fitness::is_solved() const
 	{
-		return abs.cur >= conf.fit.tgt;
+		return abs.last >= conf.fit.tgt;
 	}
 
 	void Fitness::add_param(Param& _p)
@@ -28,30 +29,30 @@ namespace Cortex
 	}
 
 	template<>
-	void Fitness::feedback<Opt::Anneal>()
+	void Fitness::feedback<ParamOpt::Anneal>()
 	{
 		for (const auto& param : params)
 		{
-			param.get().optimise<Opt::Anneal>(*this);
+			param.get().optimise<ParamOpt::Anneal>(*this);
 		}
 	}
 
 	template<>
-	void Fitness::feedback<Opt::Trend>()
+	void Fitness::feedback<ParamOpt::ES>()
 	{
 		for (const auto& param : params)
 		{
-			param.get().optimise<Opt::Trend>(*this);
+			param.get().optimise<ParamOpt::ES>(*this);
 		}
 	}
 
 	void Fitness::feedback(const real _val)
 	{
-		if (_val > abs.cur)
+		if (_val > abs.last)
 		{
 			eff = Eff::Inc;
 		}
-		else if (_val < abs.cur)
+		else if (_val < abs.last)
 		{
 			eff = Eff::Dec;
 		}
@@ -63,12 +64,12 @@ namespace Cortex
 
 		switch (conf.mut.opt)
 		{
-		case Opt::Anneal:
-			feedback<Opt::Anneal>();
+		case ParamOpt::Anneal:
+			feedback<ParamOpt::Anneal>();
 			break;
 
-		case Opt::Trend:
-			feedback<Opt::Trend>();
+		case ParamOpt::ES:
+			feedback<ParamOpt::ES>();
 			break;
 
 		default:

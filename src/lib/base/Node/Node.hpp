@@ -55,9 +55,9 @@ namespace Cortex
 
 		Node(Node&& _other) = delete;
 
-		explicit Node(const NR _nr, const uint _idx, Net& _net);
+		explicit Node(Net& _net, const NR _nr, const uint _idx, const uchar _layer = 0);
 
-		explicit Node(const Node& _other, Net& _net);
+		explicit Node(Net& _net, const Node& _other);
 
 		void connect();
 

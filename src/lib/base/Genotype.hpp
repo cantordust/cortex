@@ -9,7 +9,7 @@ namespace Cortex
 	{
 	private:
 
-		emap<NR, uint> genome;
+		hmap<NR, uint> genome;
 
 	public:
 
@@ -23,7 +23,7 @@ namespace Cortex
 
 		uint count(const NR _nr);
 
-		const emap<NR, uint>& get_genome() const;
+		const hmap<NR, uint>& get_genome() const;
 
 		bool operator == (const Genotype& _other);
 	};

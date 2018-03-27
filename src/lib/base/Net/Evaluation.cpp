@@ -43,7 +43,7 @@ namespace Cortex
 		output.reserve(nodes.at(NR::O).size());
 		for (const auto& out : nodes.at(NR::O))
 		{
-			output.push_back(out->axon.val.cur);
+			output.push_back(out->axon.val.last);
 		}
 
 //		dlog d;

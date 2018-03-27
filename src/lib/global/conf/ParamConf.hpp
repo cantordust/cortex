@@ -1,17 +1,15 @@
 #ifndef CORTEX_PARAMCONF_HPP
 #define CORTEX_PARAMCONF_HPP
 
-#include "Globals.hpp"
-#include "Stat.hpp"
+#include "ConfBase.hpp"
+#include "StatConf.hpp"
 
 namespace Cortex
 {
-	class ParamConf final
+	class ParamConf final : public ConfBase
 	{
 
 	public:
-
-		Conf& conf;
 
 		/// Initialisation parameters
 		Dist dist;
@@ -26,15 +24,15 @@ namespace Cortex
 		real ubound;
 
 		/// Configuration for the parameter statistics
-		Stat stat;
+		StatConf stat;
 
 	public:
 
 		ParamConf(Conf& _conf);
 
-		void set_defaults();
+		virtual void set_defaults() override final;
 
-		std::string validate();
+		virtual void validate() override final;
 
 		friend std::ostream& operator << (std::ostream& _strm, const ParamConf& _c);
 	};

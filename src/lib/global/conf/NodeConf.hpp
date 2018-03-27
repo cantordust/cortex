@@ -2,31 +2,29 @@
 #define CORTEX_NODECONF_HPP
 
 #include "ParamConf.hpp"
-#include "Stat.hpp"
+#include "StatConf.hpp"
 
 namespace Cortex
 {
-	class NodeConf final
+	class NodeConf final : public ConfBase
 	{
 	public:
 
-		Conf& conf;
-
 		/// Node roles and corresponding counts
-		emap<NR, uint> roles;
+		hmap<NR, uint> roles;
 
 		/// Transfer functions allowed for different roles
-		emap<NR, eset<TF>> tf;
+		hmap<NR, hset<TF>> tf;
 
 		/// Parameter configuration for
 		/// membrane time constant
 		ParamConf tau;
 
-		/// Axon statistics
-		Stat axon;
+		/// Input statistics
+		StatConf soma;
 
-		/// Soma statistics
-		Stat soma;
+		/// Output statistics
+		StatConf axon;
 
 	public:
 
@@ -34,9 +32,9 @@ namespace Cortex
 
 		TF rnd_tf(const NR _nr);
 
-		void set_defaults();
+		virtual void set_defaults() override final;
 
-		std::string validate();
+		virtual void validate() override final;
 
 		friend std::ostream& operator << (std::ostream& _strm, const NodeConf& _conf);
 	};

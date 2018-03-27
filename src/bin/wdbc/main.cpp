@@ -18,9 +18,9 @@ int main( int argc, char* argv[] )
 	test(conf);
 	return 0;
 
-	Experiment wdbc_exp;
-	wdbc_exp.setup(conf, &WDBC::eval);
-	wdbc_exp.run();
+	Experiment exp(conf);
+	exp.setup(&WDBC::eval);
+	exp.run();
 
 	dlog() << "Experiment completed, exiting.";
 	return 0;

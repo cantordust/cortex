@@ -6,8 +6,8 @@
 #include "ParamConf.hpp"
 #include "JSONOps.hpp"
 
-#include "Globals.hpp"
-#include "EcoConf.hpp"
+#include "ConfBase.hpp"
+#include "EnvConf.hpp"
 #include "SpcConf.hpp"
 #include "NetConf.hpp"
 #include "NodeConf.hpp"
@@ -19,6 +19,10 @@
 #include "NoveltyConf.hpp"
 #include "DataConf.hpp"
 #include "SysConf.hpp"
+#include "LayerConf.hpp"
+#include "ConvConf.hpp"
+#include "StatConf.hpp"
+#include "ParamConf.hpp"
 
 namespace Cortex
 {
@@ -27,7 +31,7 @@ namespace Cortex
 
 	public:
 
-		EcoConf eco;
+		EnvConf env;
 
 		SpcConf spc;
 
@@ -47,16 +51,9 @@ namespace Cortex
 
 		NoveltyConf novelty;
 
-		DataConf dataset;
-
 		SysConf sys;
 
-		///=========================================
-		/// The following members are not
-		/// to be serialised.
-		///=========================================
-
-		DataPtr data;
+		DataConf data;
 
 	private:
 
@@ -66,15 +63,21 @@ namespace Cortex
 		/// @brief JSON object holding the parsed configuration.
 		json json_root;
 
+		/// @brief Report containing problems
+		/// different subconfigurations
+		std::stringstream report;
+
 		struct
 		{
-			/// @brief Semaphore for accesssing the RNG engine.
-			std::mutex semaphore;
+			/// @brief Shmaphore for accesssing the RNG engine.
+			std::mutex shmaphore;
 
 			/// @brief Global RNG.
 			std::mt19937_64 engine;
 
 		} rnd;
+
+		friend class ConfBase;
 
 	public:
 
@@ -147,7 +150,7 @@ namespace Cortex
 		template<typename T = uint, typename std::enable_if<std::is_integral<T>::value>::type ...>
 		T rnd_int(const T _min, const T _max)
 		{
-			glock lk(rnd.semaphore);
+			glock lk(rnd.shmaphore);
 			std::uniform_int_distribution<T> dist(_min, _max);
 			return dist(rnd.engine);
 		}
@@ -157,7 +160,7 @@ namespace Cortex
 		/// @param _max Maximal value.
 		real rnd_real(const real _min, const real _max)
 		{
-			glock lk(rnd.semaphore);
+			glock lk(rnd.shmaphore);
 			std::uniform_real_distribution<real> dist(_min, _max);
 			return dist(rnd.engine);
 		}

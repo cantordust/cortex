@@ -1,58 +1,104 @@
 #include "Conf.hpp"
-#include "Ecosystem.hpp"
+#include "Env.hpp"
 #include "Species.hpp"
 #include "Net.hpp"
 
 namespace Cortex
 {
-	Ecosystem::Ecosystem(Conf& _conf)
+	Env::Env(Conf& _conf, const EvalFunc& _ef)
 		:
 		  age(1),
 		  conf(_conf),
+		  tp(_conf.sys.threads),
+		  ef(_ef),
 		  solved(false),
 		  champ(nullptr),
-		  evals(0),
-		  tp(_conf.sys.threads)
+		  evals(0)
 	{
-//		dlog() << "Ecosystem created in thread " << std::this_thread::get_id();
+		dlog() << "Environment created in thread " << std::this_thread::get_id();
 	}
 
-	bool Ecosystem::init()
+	template<>
+	void Env::eval<OptMode::Evolution>()
 	{
-		conf.validate();
+		print_stats();
 
-		species.clear();
-		nets.clear();
-		conf.reset_ids();
+		uint round(0);
+		do
+		{
+			dlog() << "\tRound " << round + 1;
+			for (const auto& net : nets)
+			{
+				tp.enqueue(std::forward<EvalFunc>(ef), std::ref(*net.second));
+			}
 
+			/// Wait for all networks to be evaluated.
+			tp.wait();
+
+			mutate();
+		} while(conf.mut.rate > 0 &&
+				++round < conf.mut.rate);
+
+		evolve();
+	}
+
+	/// @todo Implementation
+	template<>
+	void Env::eval<OptMode::GD>()
+	{
+		for (const auto& net : nets)
+		{
+			tp.enqueue(std::forward<EvalFunc>(ef), std::ref(*net.second));
+		}
+
+		/// Wait for all networks to be evaluated.
+		tp.wait();
+	}
+
+	/// @todo Implementation
+	template<>
+	void Env::eval<OptMode::Hybrid>()
+	{
+		for (const auto& net : nets)
+		{
+			tp.enqueue(std::forward<EvalFunc>(ef), std::ref(*net.second));
+		}
+
+		/// Wait for all networks to be evaluated.
+		tp.wait();
+	}
+
+	template<>
+	bool Env::init<EnvType::Population>()
+	{
 		uint spc_id(0);
 		uint net_id(0);
 
-		uint nets_per_spc( conf.eco.init.size / conf.spc.init.count );
+		uint nets_per_spc( conf.env.init.size / conf.spc.init.count );
 
 		for (uint s = 0; s < conf.spc.init.count; ++s)
 		{
-			// Generate a species ID
+			/// Generate a species ID
 			spc_id = conf.spc.next_id();
 
-			// Generate a genotype for the species
+			/// Generate a genotype for the species
 			Genotype gen(conf);
 
-			// Set the number of input receptors for the genome
+			/// Set the number of input receptors for the genome
 			gen.set(NR::I, gen.count(NR::I) * conf.net.rf.size);
 
-			// Set the number of hidden neurons for the genome
+			/// Set the number of hidden neurons for the genome
 			gen.add(NR::H, s);
 
-			// Insert the species into the environment
+			/// Insert the species into the environment
 			insert_spc(spc_id, gen);
 
-			// Generate networks
+			/// Generate networks
 			for (uint n = 0; n < nets_per_spc; ++n)
 			{
 				net_id = conf.net.next_id();
 //				dlog() << "Generating network " << net_id;
-				insert_net(net_id, spc_id);
+				insert_net(net_id, species.at(spc_id));
 				nets.at(net_id)->init();
 //				dlog() << *nets.at(net_id);
 			}
@@ -63,10 +109,24 @@ namespace Cortex
 		{
 			return false;
 		}
+
 		return true;
 	}
 
-	const SpcPtr Ecosystem::get_spc(const Genotype& _gen)
+	template<>
+	bool Env::init<EnvType::Single>()
+	{
+		uint net_id(conf.net.next_id());
+
+		dlog() << "Generating network " << net_id;
+		insert_net(net_id);
+		nets.at(net_id)->init();
+//		dlog() << *nets.at(net_id);
+
+		return true;
+	}
+
+	const SpcPtr Env::get_spc(const Genotype& _gen)
 	{
 		for (const auto& s : species)
 		{
@@ -80,19 +140,19 @@ namespace Cortex
 			species.size() < conf.spc.max.count)
 		{
 			/// The species doesn't exist and we can create it.
-			/// Register the new species with the ecosystem.
+			/// Register the new species with the Environment.
 			return insert_spc(conf.spc.next_id(), _gen);
 		}
 
 		return nullptr;
 	}
 
-	bool Ecosystem::is_solved()
+	bool Env::is_solved()
 	{
 		return solved;
 	}
 
-	void Ecosystem::mark_solved(const uint _net_id)
+	void Env::mark_solved(const uint _net_id)
 	{
 		if (!solved)
 		{
@@ -102,22 +162,22 @@ namespace Cortex
 		}
 	}
 
-	const NetPtr Ecosystem::get_champ()
+	const NetPtr Env::get_champ()
 	{
 		return champ;
 	}
 
-	void Ecosystem::inc_evals()
+	void Env::inc_evals()
 	{
 		++evals;
 	}
 
-	uint Ecosystem::get_evals()
+	uint Env::get_evals()
 	{
 		return evals;
 	}
 
-	void Ecosystem::print_champ()
+	void Env::print_champ()
 	{
 		if (champ)
 		{
@@ -125,53 +185,53 @@ namespace Cortex
 		}
 	}
 
-	void Ecosystem::print_stats()
+	void Env::print_stats()
 	{
 		dlog() << "\n------------------------"
 			   << "\nGeneration: " << age
 			   << "\nSpecies count: " << species.size()
 			   << "\nNetwork count: " << nets.size()
-			   << "\nHighest fitness: " << (champ ? champ->fitness.abs.cur : 0.0)
+			   << "\nHighest fitness: " << (champ ? champ->fitness.abs.last : 0.0)
 			   << "\n\n*** Evaluating networks...";
 	}
 
-	uint Ecosystem::get_net_count() const
+	uint Env::get_net_count() const
 	{
 		return nets.size();
 	}
 
-	uint Ecosystem::get_spc_count() const
+	uint Env::get_spc_count() const
 	{
 		return species.size();
 	}
 
-	const hmap<uint, NetPtr>& Ecosystem::get_nets()
+	const hmap<uint, NetPtr>& Env::get_nets() const
 	{
 		return nets;
 	}
 
-	const NetPtr Ecosystem::get_net(const uint _net_id)
+	const NetPtr Env::get_net(const uint _net_id)
 	{
 		return (nets.find(_net_id) == nets.end()) ? nullptr : nets.at(_net_id);
 	}
 
-	const SpcPtr Ecosystem::get_spc(const uint _spc_id)
+	const SpcPtr Env::get_spc(const uint _spc_id)
 	{
 		return (species.find(_spc_id) == species.end()) ? nullptr : species.at(_spc_id);
 	}
 
-	void Ecosystem::erase_net(const uint _net_id)
+	void Env::erase_net(const uint _net_id)
 	{
 		species.at(nets.at(_net_id)->spc->id)->erase_net(_net_id);
 		nets.erase(_net_id);
 	}
 
-	void Ecosystem::evolve()
+	void Env::evolve()
 	{
 		/// Statistics
 		dlog() << "Total evaluations: " << evals;
 
-		/// Increase the age of the ecosystem by 1
+		/// Increase the age of the environment by 1
 		++age;
 		for (auto& net : nets)
 		{
@@ -184,7 +244,7 @@ namespace Cortex
 		}
 		else
 		{
-			dlog() << "*** Evolving ecosystem";
+			dlog() << "*** Evolving environment";
 
 			find_champ();
 			cleanup();
@@ -197,7 +257,7 @@ namespace Cortex
 		}
 	}
 
-	void Ecosystem::find_champ()
+	void Env::find_champ()
 	{
 //		dlog() << "Finding global champion...";
 
@@ -207,17 +267,17 @@ namespace Cortex
 		for (const auto& net : nets)
 		{
 			if (champ == nullptr ||
-				net.second->fitness.abs.cur > max_fit)
+				net.second->fitness.abs.last > max_fit)
 			{
 				champ = net.second;
-				max_fit = champ->fitness.abs.cur;
+				max_fit = champ->fitness.abs.last;
 			}
 		}
 
 //		print_champ();
 	}
 
-	void Ecosystem::update_fitness()
+	void Env::update_fitness()
 	{
 		Stat spc_stat(MA::SMA);
 
@@ -236,35 +296,27 @@ namespace Cortex
 
 			/// Compute the relative species fitness
 			spc.second->fitness.rel.update(Logistic(spc.second->fitness.abs.get_offset()) *
-										   Logistic(spc_stat.get_offset( spc.second->fitness.abs.cur ) ) );
+										   Logistic(spc_stat.get_offset( spc.second->fitness.abs.last ) ) );
 		}
 
 		for (const auto& spc : species)
 		{
 			dlog() << "Species " << spc.second->id << ":"
-				   << "\n\tAbsolute fitness: " << spc.second->fitness.abs.cur
-				   << "\n\tRelative fitness: " << spc.second->fitness.rel.cur;
+				   << "\n\tAbsolute fitness: " << spc.second->fitness.abs.last
+				   << "\n\tRelative fitness: " << spc.second->fitness.rel.last;
 		}
 	}
 
-	void Ecosystem::cleanup()
+	void Env::cleanup()
 	{
 		/// Remove empty species
 		for (auto it = species.begin(); it != species.end(); )
 		{
-			if (it->second->is_empty())
-			{
-//				dlog() << "Removing empty species " << it->second.id;
-				it = species.erase(it);
-			}
-			else
-			{
-				++it;
-			}
+			(it->second->is_empty()) ? it = species.erase(it) : ++it;
 		}
 	}
 
-	void Ecosystem::crossover()
+	void Env::crossover()
 	{
 		/// Roulette wheels for mating and culling
 		hmap<uint, real> mating_wheel;
@@ -282,7 +334,7 @@ namespace Cortex
 		///=========================================
 
 		/// Produce offspring equal to the mating rate
-		/// portion of the current ecosystem size.
+		/// portion of the current environment size.
 		uint offspring(conf.mating.rate * nets.size());
 		while (offspring > 0)
 		{
@@ -310,7 +362,7 @@ namespace Cortex
 			/// Create a new network with
 			/// the next available network ID.
 			uint new_net_id(conf.net.next_id());
-			insert_net(new_net_id, spc_id);
+			insert_net(new_net_id, species.at(spc_id));
 
 			/// Perform crossover
 			nets.at(new_net_id)->crossover(nets.at(p1), nets.at(p2));
@@ -330,8 +382,8 @@ namespace Cortex
 		}
 
 		/// Cull networks until the size limit
-		/// of the ecosystem is reached.
-		while (nets.size() > conf.eco.max.size)
+		/// of the environment is reached.
+		while (nets.size() > conf.env.max.size)
 		{
 			/// Erase a network from a random species
 			/// picked from the culling  wheel.
@@ -345,23 +397,72 @@ namespace Cortex
 		}
 	}
 
-	void Ecosystem::mutate()
+	void Env::mutate()
 	{
-		for (const auto& spc : species)
+		if (conf.mut.rate > 0)
 		{
-			spc.second->mutate();
+			dlog() << "Mutating networks...";
+			for (const auto& spc : species)
+			{
+				spc.second->mutate();
+			}
 		}
 	}
 
-	SpcPtr Ecosystem::insert_spc(const uint _spc_id, const Genotype& _gen)
+	SpcPtr Env::insert_spc(const uint _spc_id, const Genotype& _gen)
 	{
 		species[_spc_id] = std::make_shared<Species>(_spc_id, _gen, *this);
 		return species[_spc_id];
 	}
 
-	NetPtr Ecosystem::insert_net(const uint _net_id, const uint _spc_id)
+	NetPtr Env::insert_net(const uint _net_id, const SpcPtr _spc)
 	{
-		nets[_net_id] = std::make_shared<Net>(_net_id, species.at(_spc_id), *this);
+		nets[_net_id] = std::make_shared<Net>(_net_id, _spc, *this);
 		return nets[_net_id];
+	}
+
+	///=========================================
+	///	Dispatch functions
+	///=========================================
+
+	bool Env::init()
+	{
+		conf.validate();
+
+		species.clear();
+		nets.clear();
+		conf.reset_ids();
+
+		switch (conf.env.type)
+		{
+		case EnvType::Population:
+			return init<EnvType::Population>();
+
+		case EnvType::Single:
+			return init<EnvType::Single>();
+
+		default:
+			return false;
+		}
+	}
+
+	void Env::eval()
+	{
+		print_stats();
+
+		switch (conf.env.opt)
+		{
+		case OptMode::Evolution:
+			return eval<OptMode::Evolution>();
+
+		case OptMode::GD:
+			return eval<OptMode::GD>();
+
+		case OptMode::Hybrid:
+			return eval<OptMode::Hybrid>();
+
+		default:
+			return;
+		}
 	}
 }

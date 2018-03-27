@@ -11,11 +11,9 @@ namespace WDBC
 
 	void eval(Net& _net);
 
-	bool load_data(Conf& _config);
+	bool load_data(Conf& _conf);
 
-	bool split_data_sets(Conf& _config);
-
-	void test(Conf& _config);
+	void test(Conf& _conf);
 }
 
 #endif // EVAL_HPP

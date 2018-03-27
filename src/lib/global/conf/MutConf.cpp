@@ -3,16 +3,8 @@
 namespace Cortex
 {
 	template<>
-	void load(const json& _j, MutConf::EliteConf& _c)
-	{
-		load(_j, "enabled", _c.enabled);
-		load(_j, "prop", _c.prop);
-	}
-
-	template<>
 	void load(const json& _j, MutConf& _c)
 	{
-		load(_j, "enabled", _c.enabled);
 		load(_j, "adaptive", _c.adaptive);
 		load(_j, "rate", _c.rate);
 		load(_j, "opt", _c.opt);
@@ -23,7 +15,7 @@ namespace Cortex
 
 	MutConf::MutConf(Conf& _conf)
 		:
-		  conf(_conf)
+		  ConfBase(_conf, "Mutation configuration")
 	{
 		set_defaults();
 	}
@@ -35,10 +27,9 @@ namespace Cortex
 
 	void MutConf::set_defaults()
 	{
-		enabled = true;
 		adaptive = false;
 		rate = 5;
-		opt = Opt::Trend;
+		opt = ParamOpt::ES;
 		scale = 0.05;
 
 		prob[Mut::AddNode] = 5.0;
@@ -49,39 +40,17 @@ namespace Cortex
 		prob[Mut::TF] = 0.0;
 		prob[Mut::Weight] = 1000.0;
 
-		elite.enabled = true;
-		elite.prop = 0.05;
+		elite = 0.05;
 	}
 
-	std::string MutConf::validate()
+	void MutConf::validate()
 	{
-		std::stringstream problems;
 
-		if (enabled)
-		{
-			if (rate == 0)
-			{
-				problems << "\t - Invalid mutation rate (" << rate << ").\n";
-			}
-			if (elite.enabled &&
-				elite.prop <= 0.0)
-			{
-				problems << "\t - Invalid elite proportion (" << elite.prop << ").\n";
-			}
-
-		}
-		else
-		{
-			rate = 1;
-		}
-
-		return problems.str();
 	}
 
 	std::ostream& operator << (std::ostream& _strm, const MutConf& _conf)
 	{
-		_strm << "\n--- Mutation ---"
-			  << "\nenabled: " << _conf.enabled
+		_strm << _conf.header()
 			  << "\nadaptive: " << _conf.adaptive
 			  << "\nrate: " << _conf.rate
 			  << "\nopt: " << _conf.opt
@@ -91,10 +60,8 @@ namespace Cortex
 		{
 			_strm << "\nprob[" << p.first << "]: " << p.second;
 		}
-		_strm << "\nelite.enabled: " << _conf.elite.enabled
-			  << "\nelite.prop: " << _conf.elite.prop
-			  << "\n";
+		_strm << "\nelite: " << _conf.elite;
 
-		return _strm;
+		return _strm << "\n";
 	}
 }

@@ -9,17 +9,27 @@ namespace Cortex
 	{
 	private:
 
-		std::vector<std::vector<NodePtr>> nodes;
+		/// @brief Layer configuration
+		LayerConf& conf;
 
-		LayerType type;
+		/// @brief Result of the forward pass
+		vec output;
+
+		/// @brief Synaptic weights
+		mat weights;
 
 	public:
 
-		Layer(const std::vector<std::vector<NodePtr>>& _nodes,
-			  const LayerType _type = LayerType::Regular);
+		Layer(LayerConf& _conf);
 
-		Layer(std::vector<std::vector<NodePtr>>&& _nodes,
-			  const LayerType _type = LayerType::Regular);
+	private:
+
+		void init();
+
+		template<LayerType lt>
+		void init();
+
+		friend class Evaluator;
 	};
 }
 

@@ -1,19 +1,44 @@
 #include "Conf.hpp"
+#include "LayerConf.hpp"
 #include "Layer.hpp"
 
 namespace Cortex
 {
-	Layer::Layer(const std::vector<std::vector<NodePtr>>& _nodes,
-				 const LayerType _type)
+	Layer::Layer(LayerConf& _conf)
 		:
-		  nodes(_nodes),
-		  type(_type)
-	{}
+		  conf(_conf)
+	{
+		init();
+	}
 
-	Layer::Layer(std::vector<std::vector<NodePtr>>&& _nodes,
-				 const LayerType _type)
-		:
-		  nodes(std::move(_nodes)),
-		  type(_type)
-	{}
+	template<>
+	void Layer::init<LayerType::Regular>()
+	{
+		output = vec(conf.out);
+	}
+
+	template<>
+	void Layer::init<LayerType::Conv>()
+	{
+
+	}
+
+	///=========================================
+	/// Dispatch functions
+	///=========================================
+
+	void Layer::init()
+	{
+		switch (conf.type)
+		{
+
+		case LayerType::Conv:
+			init<LayerType::Conv>();
+			break;
+
+		default:
+			init<LayerType::Regular>();
+			break;
+		}
+	}
 }

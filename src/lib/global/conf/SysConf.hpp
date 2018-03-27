@@ -1,16 +1,14 @@
 #ifndef CORTEX_SYSCONF_HPP
 #define CORTEX_SYSCONF_HPP
 
-#include "Globals.hpp"
+#include "ConfBase.hpp"
 
 namespace Cortex
 {
-	class SysConf final
+	class SysConf final : public ConfBase
 	{
 
 	public:
-
-		Conf& conf;
 
 		/// @brief Number of times to run each experiment.
 		uint runs;
@@ -22,9 +20,9 @@ namespace Cortex
 
 		SysConf(Conf& _conf);
 
-		void set_defaults();
+		virtual void set_defaults() override final;
 
-		std::string validate();
+		virtual void validate() override final;
 
 		friend std::ostream& operator << (std::ostream& _strm, const SysConf& _conf);
 	};

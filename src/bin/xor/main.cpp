@@ -15,9 +15,9 @@ int main( int argc, char* argv[] )
 		return 0;
 	}
 
-	Experiment xor_exp;
-	xor_exp.setup(conf, &Xor::eval);
-	xor_exp.run();
+	Experiment exp(conf);
+	exp.setup(&Xor::eval);
+	exp.run();
 
 	dlog() << "Experiment completed, exiting.";
 

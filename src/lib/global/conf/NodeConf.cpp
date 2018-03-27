@@ -7,14 +7,16 @@ namespace Cortex
 	{
 		load(_j, "roles", _c.roles);
 		load(_j, "tau", _c.tau);
-		load(_j, "axon", _c.axon);
 		load(_j, "soma", _c.soma);
+		load(_j, "axon", _c.axon);
 	}
 
 	NodeConf::NodeConf(Conf& _conf)
 		:
-		  conf(_conf),
-		  tau(_conf)
+		  ConfBase(_conf, "Node configuration"),
+		  tau(_conf),
+		  soma(_conf),
+		  axon(_conf)
 	{
 		set_defaults();
 	}
@@ -43,30 +45,18 @@ namespace Cortex
 		tau.ubound = 10.0;
 	}
 
-	std::string NodeConf::validate()
+	void NodeConf::validate()
 	{
-		std::stringstream problems;
-
-		problems << tau.validate()
-				 << axon.validate()
-				 << soma.validate();
-
-		if (roles.at(NR::I) == 0)
-		{
-			problems << "\t - Invalid number of input nodes (" << roles.at(NR::I) << ").\n";
-		}
-
-		if (roles.at(NR::O) == 0)
-		{
-			problems << "\t - Invalid number of output nodes (" << roles.at(NR::O) << ").\n";
-		}
-
-		return problems.str();
+		check(roles.at(NR::I) > 0, "Invalid number of input nodes (", roles.at(NR::I), ")");
+		check(roles.at(NR::O) > 0, "Invalid number of output nodes (", roles.at(NR::O), ")");
+		tau.validate();
+		soma.validate();
+		axon.validate();
 	}
 
 	std::ostream& operator << (std::ostream& _strm, const NodeConf& _conf)
 	{
-		_strm << "\n--- Nodes ---"
+		_strm << _conf.header()
 			  << "\nroles:\n";
 
 		for (const auto& r : _conf.roles)
@@ -86,10 +76,9 @@ namespace Cortex
 		}
 
 		_strm << "\ntau:\n " << _conf.tau
-			  << "\naxon:\n " << _conf.axon
 			  << "\nsoma:\n " << _conf.soma
-			  << "\n";
+			  << "\naxon:\n " << _conf.axon;
 
-		return _strm;
+		return _strm << "\n";
 	}
 }

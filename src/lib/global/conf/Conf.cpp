@@ -7,7 +7,7 @@ namespace Cortex
 	Conf::Conf(const std::string& _file)
 		:
 		  config_file(_file),
-		  eco(*this),
+		  env(*this),
 		  spc(*this),
 		  net(*this),
 		  node(*this),
@@ -17,9 +17,8 @@ namespace Cortex
 		  fit(*this),
 		  stdp(*this),
 		  novelty(*this),
-		  dataset(*this),
 		  sys(*this),
-		  data(std::make_shared<Data>(*this))
+		  data(*this)
 	{
 		dlog() << "\n===== Cortex neuroevolution platform v. " << version << " =====";
 
@@ -41,16 +40,12 @@ namespace Cortex
 
 		validate();
 
-		data->set_defaults();
-
-		data->validate();
-
 		dlog() << "*** Configuration loaded successfully.";
 	}
 
 	void Conf::load()
 	{
-		load("eco", eco);
+		load("env", env);
 		load("spc", spc);
 		load("net", net);
 		load("node", node);
@@ -60,32 +55,32 @@ namespace Cortex
 		load("fit", fit);
 		load("stdp", stdp);
 		load("novelty", novelty);
-		load("dataset", dataset);
 		load("sys", sys);
+		load("data", data);
 	}
 
 	void Conf::validate()
 	{
-		std::stringstream problems;
+		report.str(std::string());
+		report.clear();
 
-		problems << eco.validate()
-				 << spc.validate()
-				 << net.validate()
-				 << node.validate()
-				 << link.validate()
-				 << mating.validate()
-				 << mut.validate()
-				 << fit.validate()
-				 << stdp.validate()
-				 << novelty.validate()
-				 << dataset.validate()
-				 << sys.validate()
-				 << data->validate();
+		env.validate();
+		spc.validate();
+		net.validate();
+		node.validate();
+		link.validate();
+		mating.validate();
+		mut.validate();
+		fit.validate();
+		stdp.validate();
+		novelty.validate();
+		sys.validate();
+		data.validate();
 
-		if (problems.str().size() > 0)
+		if (!report.str().empty())
 		{
 			dlog() << "### Configuration errors:\n"
-				   << problems.str();
+				   << report.str();
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -119,21 +114,21 @@ namespace Cortex
 
 	real Conf::rnd_nd(const real _mean, const real _sd)
 	{
-		glock lk(rnd.semaphore);
+		glock lk(rnd.shmaphore);
 		std::normal_distribution<real> dist(_mean, _sd);
 		return dist(rnd.engine);
 	}
 
 	size_t Conf::w_dist(const std::vector<real>& _weights)
 	{
-		glock lk(rnd.semaphore);
+		glock lk(rnd.shmaphore);
 		std::discrete_distribution<size_t> dist(_weights.begin(), _weights.end());
 		return dist(rnd.engine);
 	}
 
 	std::ostream& operator << (std::ostream& _strm, const Conf& _conf)
 	{
-		return _strm << _conf.eco
+		return _strm << _conf.env
 					 << _conf.spc
 					 << _conf.net
 					 << _conf.node
@@ -143,7 +138,7 @@ namespace Cortex
 					 << _conf.fit
 					 << _conf.stdp
 					 << _conf.novelty
-					 << _conf.dataset
-					 << _conf.sys;
+					 << _conf.sys
+					 << _conf.data;
 	}
 }

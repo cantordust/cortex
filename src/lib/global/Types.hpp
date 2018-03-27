@@ -5,11 +5,11 @@
 #include <sstream>
 #include <fstream>
 
+#include <array>
 #include <vector>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
-#include <bitset>
 
 #include <string>
 
@@ -25,11 +25,14 @@
 #include <chrono>
 #include <atomic>
 
+/// @todo Make this optional OR
+/// bundle Armadillo code
+#include <armadillo>
+
 namespace Cortex
 {
-
 	///=========================================
-	/// Forward declarations and aliases
+	/// Fundamental types
 	///=========================================
 
 	/// These affect the entire library.
@@ -40,19 +43,45 @@ namespace Cortex
 	using areal = std::atomic<real>;
 	using auint = std::atomic<uint>;
 
-	template<typename T1, typename T2> using hmap = std::unordered_map<T1, T2>;
-	template<typename T> using hset = std::unordered_set<T>;
+	///=========================================
+	/// Vectors and matrices
+	///=========================================
+
+	using mat = arma::sp_mat;
+	using vec = arma::vec;
+
+	///=========================================
+	/// Containers
+	///=========================================
+
+	/// Hashmap
+	template<typename K, typename V>
+	using hmap = std::unordered_map<K, V>;
+
+	/// Hashset
+	template<typename T>
+	using hset = std::unordered_set<T>;
+
+	///=========================================
+	/// Smart pointers and references
+	///=========================================
+
+	/// Unique pointer
 	template<typename T> using uptr = std::unique_ptr<T>;
+
+	/// Shared pointer
 	template<typename T> using sptr = std::shared_ptr<T>;
+
+	/// Reseatable / assignable reference
 	template<typename T> using rfw = std::reference_wrapper<T>;
 
-	/// @todo Switch to tensors (cf. Tensor.hpp)
-//	using Point = std::vector<real>;
-//	using Substrate = std::vector<std::pair<Point, uint>>;
+	///=========================================
+	/// Forward declarations
+	///=========================================
 
-	/// Forward class declarations
-	class Conf;
-	class Ecosystem;
+	/// @brief Core classes
+	class Experiment;
+	class Env;
 	class Species;
 	class Genotype;
 	class Net;
@@ -64,29 +93,48 @@ namespace Cortex
 	class Fitness;
 	class Data;
 	class Sample;
+	class RField;
+	class Evaluator;
 
+	/// @brief Structs
 	struct NodeID;
 	struct Soma;
 	struct Axon;
 
-	/// Reference wrappers
-	using ConfRef = rfw<Conf>;
-	using EcoRef = rfw<Ecosystem>;
-	using SpcRef = rfw<Species>;
+	/// @brief Configuration classes
+	class Conf;
+	class ConfBase;
+	class EnvConf;
+	class SpcConf;
+	class NetConf;
+	class NodeConf;
+	class LinkConf;
+	class MatingConf;
+	class MutConf;
+	class FitConf;
+	class STDPConf;
+	class NoveltyConf;
+	class DataConf;
+	class SysConf;
+	class ParamConf;
+	class StatConf;
+	class LayerConf;
+	class ConvConf;
+
+	/// @brief Reference wrappers
 	using NetRef = rfw<Net>;
-	using NodeRef = rfw<Node>;
-	using LinkRef = rfw<Link>;
 	using ParamRef = rfw<Param>;
 	using SampleRef = rfw<Sample>;
 
-	/// Pointers
-	using ConfPtr = sptr<Conf>;
+	/// @brief Pointers
 	using NetPtr = sptr<Net>;
 	using SpcPtr = sptr<Species>;
 	using NodePtr = sptr<Node>;
 	using LinkPtr = sptr<Link>;
 	using DataPtr = sptr<Data>;
-	using ParamPtr = sptr<Param>;
+
+	/// @brief Network evaluation function
+	using EvalFunc = std::function<void(Net&)>;
 
 	///=========================================
 	/// Constants

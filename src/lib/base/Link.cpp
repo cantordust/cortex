@@ -67,7 +67,7 @@ namespace Cortex
 		{
 			ltd<NT::Classical>();
 		}
-		return weight.val() * src.axon.val.cur;
+		return weight.val() * src.axon.val.last;
 	}
 
 	template<>

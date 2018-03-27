@@ -1,15 +1,13 @@
 #ifndef CORTEX_SPCCONF_HPP
 #define CORTEX_SPCCONF_HPP
 
-#include "Globals.hpp"
+#include "ConfBase.hpp"
 
 namespace Cortex
 {
-	class SpcConf final
+	class SpcConf final : public ConfBase
 	{
 	public:
-
-		Conf& conf;
 
 		struct
 		{
@@ -31,9 +29,9 @@ namespace Cortex
 
 		SpcConf(Conf& _conf);
 
-		void set_defaults();
+		virtual void set_defaults() override final;
 
-		std::string validate();
+		virtual void validate() override final;
 
 		friend std::ostream& operator << (std::ostream& _strm, const SpcConf& _conf);
 

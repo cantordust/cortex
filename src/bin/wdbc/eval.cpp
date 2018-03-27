@@ -27,12 +27,6 @@ namespace WDBC
 			return false;
 		}
 
-		if (!_conf.data->partition())
-		{
-			dlog() << "Error partitioning data into subsets.";
-			return false;
-		}
-
 		_conf.fit.tgt = 1.0;
 		_conf.validate();
 
@@ -41,10 +35,10 @@ namespace WDBC
 
 	void test(Conf& _conf)
 	{
-		dlog() << "Training set: " << _conf.data->get_set_size(Set::Training) << " samples\n"
-			   << "Validation set: " << _conf.data->get_set_size(Set::Validation) << " samples\n"
-			   << "Test set: " << _conf.data->get_set_size(Set::Test) << " samples\n"
-			   << "Total: " << _conf.data->get_set_size() << "\n" ;
+		dlog() << "Training set: " << _conf.data.get_set_size(Set::Training) << " samples\n"
+			   << "Validation set: " << _conf.data.get_set_size(Set::Validation) << " samples\n"
+			   << "Test set: " << _conf.data.get_set_size(Set::Test) << " samples\n"
+			   << "Total: " << _conf.data.get_set_size() << "\n" ;
 	}
 
 	bool load_data(Conf& _conf)
@@ -114,7 +108,7 @@ namespace WDBC
 				{
 					input.push_back(std::stod(entry));
 				}
-				_conf.data->add_sample({input}, label);
+				_conf.data.add({input}, label);
 			}
 		}
 

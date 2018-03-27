@@ -5,21 +5,37 @@
 
 namespace Cortex
 {
-	class LayerConf final
+	class LayerConf final : public ConfBase
 	{
+
 	public:
 
+		/// @brief Self-explanatory
 		LayerType type;
 
-		std::vector<ConvConf> conv;
+		/// @brief Number of input nodes
+		uint in;
 
-		LayerConf();
+		/// @brief Number of output nodes
+		uint out;
 
-		void set_defaults();
+		/// @brief Convolutional parameters
+		ConvConf conv;
 
-		std::string validate();
+	public:
 
-		friend 	std::ostream& operator << (std::ostream& _strm, const LayerConf& _conf);
+		LayerConf(Conf& _conf);
+
+		virtual void set_defaults() override final;
+
+		virtual void validate() override final;
+
+	private:
+
+		template<LayerType lt>
+		void validate();
+
+		friend std::ostream& operator << (std::ostream& _strm, const LayerConf& _conf);
 	};
 }
 

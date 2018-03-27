@@ -4,15 +4,15 @@ project(cortex CXX)
 
 # Select a custom C++ compiler.
 #
-# Recognised options: Clang | GCC
+# Recognised options: clang | gcc
 #
-# Default: Clang
+# Default: clang
 #
 # NOTE: C++14 support required
 #
-# TODO: Test other compilers (MSVC, MinGW, etc.)
+# TODO: Test other compilers (msvc, mingw, etc.)
 
-set(custom_compiler GCC)
+set(custom_compiler clang)
 
 # Select build type
 #

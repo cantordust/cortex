@@ -49,7 +49,7 @@ namespace Cortex
 	}
 
 	template<>
-	void RField::convert<NT::Spiking, RF::None>(const std::vector<std::vector<real>>& _input) const
+	void RField::convert<NT::Spiking, RF::Direct>(const std::vector<std::vector<real>>& _input) const
 	{
 		for (uint var = 0; var < _input.size(); ++var)
 		{
@@ -61,7 +61,7 @@ namespace Cortex
 	}
 
 	template<>
-	void RField::convert<NT::Classical, RF::None>(const std::vector<std::vector<real>>& _input) const
+	void RField::convert<NT::Classical, RF::Direct>(const std::vector<std::vector<real>>& _input) const
 	{
 		for (uint var = 0; var < _input.size(); ++var)
 		{
@@ -108,8 +108,8 @@ namespace Cortex
 			convert<NT::Spiking, RF::GRF>(_input);
 			break;
 
-		case RF::None:
-			convert<NT::Spiking, RF::None>(_input);
+		case RF::Direct:
+			convert<NT::Spiking, RF::Direct>(_input);
 			break;
 
 		default:
@@ -125,7 +125,7 @@ namespace Cortex
 		/// @todo Implement other receptive fields
 
 		default:
-			convert<NT::Classical, RF::None>(_input);
+			convert<NT::Classical, RF::Direct>(_input);
 			break;
 		}
 	}

@@ -5,22 +5,28 @@
 
 namespace Cortex
 {
-	class NetConf final
+	class NetConf final : public ConfBase
 	{
 	public:
 
-		Conf& conf;
-
 		/// Network type.
 		/// For now, this is limited to classical or spiking.
+		///
+		/// @todo Move check for recurrent connections from LinkConf here
 		/// @todo Boltzmann machines?
+		/// @todo LSTM?
 		NT type;
 
 		/// Network layout
 		Layout layout;
 
+		/// Connectivity (how many saturation)
+		///
+		/// @todo Use this parameter when connecting networks.
+		real conn;
+
 		/// Network layers (only for layered layout)
-		emap<NR, std::vector<LayerConf>> layers;
+		hmap<NR, std::vector<LayerConf>> layers;
 
 		struct RFConf
 		{
@@ -71,7 +77,9 @@ namespace Cortex
 		} max;
 
 		/// @todo Topology
-		/// @todo Substrates
+		/// @note WIP (layers and weights implemented using Armadillo)
+		///
+		/// @todo Substrates - link with topology?
 
 	private:
 
@@ -87,9 +95,9 @@ namespace Cortex
 		/// @brief Reset the species ID.
 		void reset_id();
 
-		void set_defaults();
+		virtual void set_defaults() override final;
 
-		std::string validate();
+		virtual void validate() override final;
 
 		friend std::ostream& operator << (std::ostream& _strm, const NetConf& _conf);
 	};

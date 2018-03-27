@@ -2,9 +2,9 @@
 
 namespace Cortex
 {
-	Axon::Axon(Stat& _stat)
+	Axon::Axon(StatConf& _conf)
 		:
 		  time(0.0),
-		  val(_stat)
+		  val(_conf)
 	{}
 }

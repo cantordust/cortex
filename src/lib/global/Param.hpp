@@ -59,7 +59,7 @@ namespace Cortex
 
 	private:
 
-		template<Opt opt>
+		template<ParamOpt opt>
 		void optimise(const Fitness& _fit);
 
 	};

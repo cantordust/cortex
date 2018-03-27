@@ -23,7 +23,7 @@ namespace Cortex
 		/// Timing of the last input
 		real last_event;
 
-		Soma(Stat& _stat);
+		Soma(StatConf& _conf);
 
 		void reset();
 

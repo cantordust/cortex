@@ -20,11 +20,10 @@ namespace Cortex
 	private:
 
 		/// The effect of the last mutation.
-		/// Used for trend tracking.
+		/// Used for tracking the effects of mutations.
 		Eff eff;
 
-		/// Parameters mutated in the
-		/// last round of evolution.
+		/// Parameters being updated.
 		std::vector<ParamRef> params;
 
 	public:
@@ -41,7 +40,7 @@ namespace Cortex
 
 	private:
 
-		template<Opt opt>
+		template<ParamOpt opt>
 		void feedback();
 
 		friend class Net;

@@ -11,7 +11,7 @@ namespace Cortex
 
 	SpcConf::SpcConf(Conf& _conf)
 		:
-		  conf(_conf),
+		  ConfBase(_conf, "Species configuration"),
 		  id(0)
 	{
 		set_defaults();
@@ -33,23 +33,17 @@ namespace Cortex
 		max.count = 15;
 	}
 
-	std::string SpcConf::validate()
+	void SpcConf::validate()
 	{
-		std::stringstream problems;
-
-		if (init.count == 0)
-		{
-			problems << "\t - Invalid initial species count (" << init.count << ").\n";
-		}
-
-		return problems.str();
+		check(init.count > 0, "Invalid initial species count (", init.count, ").");
 	}
 
 	std::ostream& operator << (std::ostream& _strm, const SpcConf& _conf)
 	{
-		return _strm << "\n--- Species ---"
-					 << "\ninit.count: " << _conf.init.count
-					 << "\nmax.count: " << _conf.max.count
-					 << "\n";
+		_strm << _conf.header()
+			  << "\ninit.count: " << _conf.init.count
+			  << "\nmax.count: " << _conf.max.count;
+
+		return _strm << "\n";
 	}
 }

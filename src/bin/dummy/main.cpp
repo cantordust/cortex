@@ -12,9 +12,9 @@ int main( int argc, char* argv[] )
 		return 0;
 	}
 
-	Experiment dummy_exp;
-	dummy_exp.setup(conf, &Dummy::eval);
-	dummy_exp.run();
+	Experiment exp(conf);
+	exp.setup(&Dummy::eval);
+	exp.run();
 
 	dlog() << "Experiment completed, exiting.";
 

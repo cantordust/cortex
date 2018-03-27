@@ -84,7 +84,13 @@ function(setup_bin)
 
 endfunction()
 
-# Issue warning messages
+# Issue messages with various levels of severity
+function(msg messages)
+	foreach(message	${messages})
+		message(STATUS "*** ${message}")
+	endforeach()
+endfunction()
+
 function(warning messages)
 	message(STATUS "### Warning ###")
 	foreach(message	${messages})
@@ -92,8 +98,10 @@ function(warning messages)
 	endforeach()
 endfunction()
 
-function(msg messages)
+function(error messages)
+	message(STATUS "!!! Error !!!")
 	foreach(message	${messages})
-		message(STATUS "*** ${message}")
+		message(STATUS "!!! ${message}")
 	endforeach()
+	message(FATAL_ERROR "!!! Exiting")
 endfunction()

@@ -13,17 +13,19 @@ namespace Cortex
 		/// Label for this sample (optional)
 		uint label;
 
-		Sample(const std::vector<real>& _input,
-			   const uint _label = 0);
+		Sample();
 
-		Sample(std::vector<real>&& _input,
-			   const uint _label = 0);
+		explicit Sample(const std::vector<real>& _input,
+						const uint _label = 0);
 
-		Sample(const std::vector<std::vector<real>>& _input,
-			   const uint _label = 0);
+		explicit Sample(std::vector<real>&& _input,
+						const uint _label = 0);
 
-		Sample(std::vector<std::vector<real>>&& _input,
-			   const uint _label = 0);
+		explicit Sample(const std::vector<std::vector<real>>& _input,
+						const uint _label = 0);
+
+		explicit Sample(std::vector<std::vector<real>>&& _input,
+						const uint _label = 0);
 
 		uint size() const;
 

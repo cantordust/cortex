@@ -12,7 +12,7 @@ namespace Cortex
 
 	LinkConf::LinkConf(Conf& _conf)
 		:
-		  conf(_conf),
+		  ConfBase(_conf, "Link configuration"),
 		  weight(_conf)
 	{
 		set_defaults();
@@ -23,7 +23,7 @@ namespace Cortex
 		hset<LinkDef> ldefs;
 		for (const auto& def : defs)
 		{
-			if (def.lt == _lt)
+			if (def.type == _lt)
 			{
 				ldefs.emplace(def);
 			}
@@ -36,8 +36,8 @@ namespace Cortex
 		hset<LinkDef> ldefs;
 		for (const auto& def : defs)
 		{
-			if ((_nr == NR::Undef || def.sr == _nr) &&
-				(_lt == LT::Undef || def.lt == _lt))
+			if ((_nr == NR::Undef || def.src == _nr) &&
+				(_lt == LT::Undef || def.type == _lt))
 			{
 				ldefs.emplace(def);
 			}
@@ -50,8 +50,8 @@ namespace Cortex
 		hset<LinkDef> ldefs;
 		for (const auto& def : defs)
 		{
-			if ((_nr == NR::Undef || def.tr == _nr) &&
-				(_lt == LT::Undef || def.lt == _lt))
+			if ((_nr == NR::Undef || def.tgt == _nr) &&
+				(_lt == LT::Undef || def.type == _lt))
 			{
 				ldefs.emplace(def);
 			}
@@ -83,37 +83,32 @@ namespace Cortex
 		};
 	}
 
-	std::string LinkConf::validate()
+	void LinkConf::validate()
 	{
-		std::stringstream problems;
-
-		problems << weight.validate();
-
 		if (!rec)
 		{
 			for (auto it = defs.begin(); it != defs.end();)
 			{
-				(it->lt == LT::Rec) ? it = defs.erase(it) : ++it;
+				(it->type == LT::Rec) ? it = defs.erase(it) : ++it;
 			}
 		}
 
-		return problems.str();
+		weight.validate();
 	}
 
 	std::ostream& operator << (std::ostream& _strm, const LinkConf& _conf)
 	{
-		_strm << "\n--- Links ---"
+		_strm << _conf.header()
 			  << "\nrec: " << _conf.rec
 			  << "\ntypes:\n";
 
-		for (const auto& lid : _conf.defs)
+		for (const auto& def : _conf.defs)
 		{
-			_strm << "\n\t" << lid;
+			_strm << "\n\t" << def;
 		}
 
-		_strm << "\nweight:\n" << _conf.weight
-			  << "\n";
+		_strm << "\nweight:\n" << _conf.weight;
 
-		return _strm;
+		return _strm << "\n";
 	}
 }

@@ -8,8 +8,8 @@ int main( int argc, char* argv[] )
 	TCLAP::ValueArg<std::string> config_file( "c", "config", "Configuration file", false, "config.json", "string", cmd );
 	cmd.parse(argc, argv);
 
-	Conf config(config_file.getValue());
-	if (!setup(config))
+	Conf conf(config_file.getValue());
+	if (!setup(conf))
 	{
 		return 0;
 	}
@@ -17,9 +17,9 @@ int main( int argc, char* argv[] )
 	test();
 	return 0;
 
-	Experiment cart_pole_exp;
-	cart_pole_exp.setup(config, &CartPole::eval);
-	cart_pole_exp.run();
+	Experiment exp(conf);
+	exp.setup(&CartPole::eval);
+	exp.run();
 
 	dlog() << "Experiment completed, exiting.";
 

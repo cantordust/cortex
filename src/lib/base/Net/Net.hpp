@@ -26,8 +26,8 @@ namespace Cortex
 
 	private:
 
-		/// The	containing ecosystem
-		Ecosystem& eco;
+		/// The containing environment
+		Env& env;
 
 		/// Note: This is not const because it can
 		/// change as the network evolves.
@@ -35,7 +35,7 @@ namespace Cortex
 
 		/// Node pointers
 		/// @todo Custom topologies.
-		emap<NR, std::vector<NodePtr>> nodes;
+		hmap<NR, std::vector<NodePtr>> nodes;
 
 		/// Evaluation graph
 		std::vector<NodePtr> graph;
@@ -59,7 +59,7 @@ namespace Cortex
 
 		Net(Net&& _other) = delete;
 
-		explicit Net(const uint _id, const SpcPtr& _species, Ecosystem& _eco);
+		explicit Net(const uint _id, const SpcPtr& _spc, Env& _env);
 
 		~Net();
 
@@ -157,12 +157,12 @@ namespace Cortex
 		bool mutate_param(const Mut _mut);
 
 		/// @brief Crossover procedure with a member of the same species.
-		/// cf. Ecosystem::mate()
+		/// cf. Environment::mate()
 		/// @param _p1 Parent 1.
 		/// @param _p2 Parent 2.
 		void crossover(const NetPtr& _p1, const NetPtr& _p2);
 
-		/// @brief Signal the ecosystem that this net has solved the task.
+		/// @brief Signal the Environment that this net has solved the task.
 		void mark_solved();
 
 		/// @brief Serialise the network to JSON.
@@ -219,6 +219,14 @@ namespace Cortex
 		const NodePtr insert_nodes(const NodePtr& _other);
 
 		///=========================================
+		/// Create network connections
+		///=========================================
+
+		/// @brief Connect based on layout type
+		template<Layout lt>
+		void connect();
+
+		///=========================================
 		/// Network evaluation
 		///=========================================
 
@@ -228,11 +236,11 @@ namespace Cortex
 		template<Enc enc>
 		void eval();
 
+	public:
+
 		///=========================================
 		/// Friends
 		///=========================================
-
-	public:
 
 		/// @brief Output the network to a stream.
 		/// @param _strm Stream to output to.
@@ -242,10 +250,11 @@ namespace Cortex
 
 	private:
 
-		friend class Ecosystem;
+		friend class Env;
 		friend class Species;
 		friend class Node;
 		friend class RField;
+		friend class Evaluator;
 	};
 }
 

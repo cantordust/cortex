@@ -16,7 +16,7 @@ namespace Cortex
 
 	/// @todo This is clunky.
 	/// Automate the version bump process.
-	const std::string version("0.5.3");
+	const std::string version("0.5.5");
 
 	///=========================================
 	/// Foreign namespaces
@@ -32,8 +32,10 @@ namespace Cortex
 
 	struct NodeID
 	{
-		NR role;
-		uint idx;
+		NR role = NR::Undef;
+		uint idx = 0;
+		uchar layer = 0;
+
 		friend bool operator == (const NodeID& _lhs, const NodeID& _rhs) noexcept;
 		friend bool operator != (const NodeID& _lhs, const NodeID& _rhs) noexcept;
 		friend bool operator > (const NodeID& _lhs, const NodeID& _rhs) noexcept;
@@ -45,18 +47,28 @@ namespace Cortex
 
 	struct LinkDef
 	{
-		LT lt;
-		NR sr;
-		NR tr;
+		LT type = LT::Undef;
+		NR src = NR::Undef;
+		NR tgt = NR::Undef;
 		friend bool operator == (const LinkDef& _lhs, const LinkDef& _rhs) noexcept;
-		friend std::ostream& operator << (std::ostream& _strm, const LinkDef& _id);
+		friend std::ostream& operator << (std::ostream& _strm, const LinkDef& _def);
 	};
 
 	struct Event
 	{
-		NodePtr node;
+		NodePtr node = nullptr;
 		real time = 0.0;
 	};
+
+	template<typename K, typename V>
+	std::ostream& operator << (std::ostream& _strm, const hmap<K, V>& _map)
+	{
+		for (const auto& elem : _map)
+		{
+			_strm << elem.first << "->" << elem.second;
+		}
+		return _strm;
+	}
 }
 
 ///=========================================
@@ -65,16 +77,22 @@ namespace Cortex
 
 namespace std
 {
-	template <>
+	template<>
 	struct hash<Cortex::NodeID>
 	{
 		size_t operator() (const Cortex::NodeID& _id) const noexcept;
 	};
 
-	template <>
+	template<>
 	struct hash<Cortex::LinkDef>
 	{
 		size_t operator() (const Cortex::LinkDef& _lprob) const noexcept;
+	};
+
+	template<>
+	struct hash<enum class E>
+	{
+		size_t operator() (const E _e) const noexcept;
 	};
 }
 

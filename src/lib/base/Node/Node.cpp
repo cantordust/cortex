@@ -5,9 +5,9 @@
 
 namespace Cortex
 {
-	Node::Node(const NR _nr, const uint _idx, Net& _net)
+	Node::Node(Net& _net, const NR _nr, const uint _idx, const uchar _layer)
 		:
-		  id({_nr, _idx}),
+		  id({_nr, _idx, _layer}),
 		  conf(_net.conf),
 		  axon(_net.conf.node.axon),
 		  soma(_net.conf.node.soma),
@@ -17,7 +17,7 @@ namespace Cortex
 		  tau(_net.conf.node.tau)
 	{}
 
-	Node::Node(const Node& _other, Net& _net)
+	Node::Node(Net& _net, const Node& _other)
 		:
 		  id(_other.id),
 		  conf(_net.conf),
@@ -130,7 +130,7 @@ namespace Cortex
 		for (const auto& ldef : ldefs)
 		{
 			/// Iterate over potential sources
-			for (const auto& node : net.nodes[ldef.sr])
+			for (const auto& node : net.nodes[ldef.src])
 			{
 				if (!is_src(node))
 				{
@@ -168,7 +168,7 @@ namespace Cortex
 		for (const auto& ldef : ldefs)
 		{
 			/// Iterate over potential targets
-			for (const auto& node : net.nodes[ldef.tr])
+			for (const auto& node : net.nodes[ldef.tgt])
 			{
 				if (!is_tgt(node))
 				{

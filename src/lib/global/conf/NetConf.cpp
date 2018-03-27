@@ -32,7 +32,7 @@ namespace Cortex
 
 	NetConf::NetConf(Conf& _conf)
 		:
-		  conf(_conf),
+		  ConfBase(_conf, "Network configuration"),
 		  id(0)
 	{
 		set_defaults();
@@ -53,7 +53,9 @@ namespace Cortex
 		type = NT::Classical;
 		layout = Layout::Random;
 
-		rf.type = RF::None;
+		conn = 0.5;
+
+		rf.type = RF::Direct;
 		rf.size = 1;
 		rf.grf.cutoff = 0.95;
 		rf.grf.beta = 1.5;
@@ -66,12 +68,12 @@ namespace Cortex
 		max.age = 0;
 	}
 
-	std::string NetConf::validate()
+	void NetConf::validate()
 	{
-		std::stringstream problems;
-
 		/// Make sure that the network type is consistent
 		/// with the activation function
+		check(type != NT::Undef, "Invalid network type (", type, ")");
+
 		if (type == NT::Classical)
 		{
 			/// Disable membrane time constant mutation.
@@ -83,7 +85,7 @@ namespace Cortex
 			conf.mut.prob.erase(Mut::TF);
 
 			/// The only available activation function
-			/// should be Fn::Spiking
+			/// should be TF::Spiking
 			for (auto& tf_set : conf.node.tf)
 			{
 				tf_set.second.clear();
@@ -95,9 +97,13 @@ namespace Cortex
 			conf.link.weight.lbound = -1.0;
 			conf.link.weight.ubound = 1.0;
 		}
-		else
+
+		check(conn > 0.0, "Connectivity should be > 0 (conn: ", conn, ")");
+		check(conn <= 1.0, "Connectivity should be <= 1 (conn: ", conn, ")");
+
+		if (layout == Layout::Layered)
 		{
-			problems << "\t - Invalid network type (" << type << ").\n";
+			check(layers.size() > 1, "Invalid number of layers (", layers.size(), ")");
 		}
 
 		if (rf.type != RF::GRF)
@@ -106,27 +112,23 @@ namespace Cortex
 			rf.size = 1;
 		}
 
-		if (spike.max.delay <= 0.0)
-		{
-			problems << "\t	- Invalid spike delay (" << spike.max.delay << ").\n";
-		}
-
-		return problems.str();
+		check(spike.max.delay > 0.0, "Invalid spike delay (", spike.max.delay, ")");
 	}
 
 	std::ostream& operator << (std::ostream& _strm, const NetConf& _conf)
 	{
-		return _strm << "\n--- NetConf ---"
-					 << "\ntype: " << _conf.type
-					 << "\nrf.type: " << _conf.rf.type
-					 << "\nrf.size: " << _conf.rf.size
-					 << "\nrf.grf.cutoff: " << _conf.rf.grf.cutoff
-					 << "\nrf.grf.beta: " << _conf.rf.grf.beta
-					 << "\nspike.lif: " << _conf.spike.lif
-					 << "\nspike.enc: " << _conf.spike.enc
-					 << "\nspike.mod: " << _conf.spike.mod
-					 << "\nspike.max.delay: " << _conf.spike.max.delay
-					 << "\nmax.age: " << _conf.max.age
-					 << "\n";
+		_strm << _conf.header()
+			  << "\ntype: " << _conf.type
+			  << "\nrf.type: " << _conf.rf.type
+			  << "\nrf.size: " << _conf.rf.size
+			  << "\nrf.grf.cutoff: " << _conf.rf.grf.cutoff
+			  << "\nrf.grf.beta: " << _conf.rf.grf.beta
+			  << "\nspike.lif: " << _conf.spike.lif
+			  << "\nspike.enc: " << _conf.spike.enc
+			  << "\nspike.mod: " << _conf.spike.mod
+			  << "\nspike.max.delay: " << _conf.spike.max.delay
+			  << "\nmax.age: " << _conf.max.age;
+
+		return _strm << "\n";
 	}
 }

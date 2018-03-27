@@ -11,7 +11,7 @@ namespace Cortex
 		real time;
 		Stat val;
 
-		Axon(Stat& _stat);
+		Axon(StatConf& _conf);
 	};
 }
 
