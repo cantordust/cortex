@@ -194,9 +194,9 @@ namespace CartPole
 		}
 	}
 
-	std::ostream& operator<< (std::ostream& _strm, const Cart& _cart)
+	os& operator<< (os& _os, const Cart& _cart)
 	{
-		_strm << "\n\nCart:"
+		_os << "\n\nCart:"
 			  << "\n\toffset: " << _cart.pos.cur << " m"
 			  << "\n\tvelocity: " << _cart.vel.cur << " m/s"
 			  << "\n\tmass: " << _cart.mass << " kg"
@@ -208,8 +208,8 @@ namespace CartPole
 
 		for (const Pole& pole : _cart.poles)
 		{
-			_strm << pole;
+			_os << pole;
 		}
-		return _strm;
+		return _os;
 	}
 }

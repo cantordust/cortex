@@ -8,7 +8,7 @@ int main( int argc, char* argv[] )
 
 	Conf conf(config_file.getValue());
 
-	dlog() << conf;
+	dlog(*conf);
 
 	if (!Xor::setup(conf))
 	{
@@ -19,7 +19,7 @@ int main( int argc, char* argv[] )
 	exp.setup(&Xor::eval);
 	exp.run();
 
-	dlog() << "Experiment completed, exiting.";
+	dlog("Task completed, exiting.");
 
 	return 0;
 }

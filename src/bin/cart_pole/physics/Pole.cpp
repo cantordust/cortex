@@ -112,9 +112,9 @@ namespace CartPole
 				0.75 * mass * cos_theta * (omega.tmp * hml + g * sin_theta );
 	}
 
-	std::ostream& operator<< (std::ostream& _strm, const Pole& _pole)
+	os& operator<< (os& _os, const Pole& _pole)
 	{
-		return _strm << "\n\n\tPole:"
+		return _os << "\n\n\tPole:"
 					 << "\n\t\tmass: " << _pole.mass << " kg"
 					 << "\n\t\tlength: " << _pole.half_len * 2.0 << " m"
 					 << "\n\t\toffset angle: " << deg(_pole.theta.cur) << " deg (" << _pole.theta.cur << " rad)"

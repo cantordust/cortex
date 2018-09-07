@@ -19,44 +19,44 @@ namespace WDBC
 		_net.set_fitness(fitness);
 	}
 
-	bool setup(Conf& _conf)
+	bool setup()
 	{
-		if (!load_data(_conf))
+		if (!load_data())
 		{
-			dlog() << "Error loading data.";
+			dlog("Error loading data.");
 			return false;
 		}
 
-		_conf.fit.tgt = 1.0;
-		_conf.validate();
+		conf->env.evo.fit.tgt = 1.0;
+		conf.validate();
 
 		return true;
 	}
 
-	void test(Conf& _conf)
+	void test()
 	{
-		dlog() << "Training set: " << _conf.data.get_set_size(Set::Training) << " samples\n"
-			   << "Validation set: " << _conf.data.get_set_size(Set::Validation) << " samples\n"
-			   << "Test set: " << _conf.data.get_set_size(Set::Test) << " samples\n"
-			   << "Total: " << _conf.data.get_set_size() << "\n" ;
+		dlog("Training set: ", data->get_set_size(SetType::Training), " samples\n",
+		      "Validation set: ", data->get_set_size(SetType::Validation), " samples\n",
+		      "Test set: ", data->get_set_size(SetType::Test), " samples\n",
+		      "Total: ", data->get_set_size());
 	}
 
-	bool load_data(Conf& _conf)
+	bool load_data()
 	{
 		std::string data_file("data/wdbc.csv");
 		uint label_idx(1);
 		std::vector<std::string> skip_list;
 		std::string pos("");
 		std::string neg("");
-		_conf.load("custom.data_file", data_file);
-		_conf.load("custom.label_idx", label_idx);
-		_conf.load("custom.skip_list", skip_list);
+		conf.load("custom.data_file", data_file);
+		conf.load("custom.label_idx", label_idx);
+		conf.load("custom.skip_list", skip_list);
 
 		std::ifstream data_stream(data_file);
 
 		if ( !data_stream.is_open() )
 		{
-			dlog() << "Error opening file " << data_file << "\n";
+			dlog("Error opening file ", data_file);
 			return false;
 		}
 
@@ -82,7 +82,7 @@ namespace WDBC
 
 			if (label_idx >= entries.size())
 			{
-				dlog() << "Invalid label index.";
+				dlog(), "Invalid label index.";
 				return false;
 			}
 
@@ -102,13 +102,13 @@ namespace WDBC
 			{
 				label = entries.at(label_idx);
 
-				dlog() << "New sample: " << label;
+				dlog("New sample: ", label);
 
 				for (uint idx = 2; idx < 12; ++idx)
 				{
 					input.push_back(std::stod(entry));
 				}
-				_conf.data.add({input}, label);
+				data->add({input}, label);
 			}
 		}
 

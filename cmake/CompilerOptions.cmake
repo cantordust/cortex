@@ -1,37 +1,27 @@
-# Select a C++ standard version (default: 14)
-set(CMAKE_CXX_STANDARD 14)
+# Select a C++ standard (default: 17)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(default_compiler clang)
+set(default_compiler /usr/bin/clang++)
+set(default_build_type Debug)
 
-if(NOT (${custom_compiler} STREQUAL "gcc" OR ${custom_compiler} STREQUAL "clang") )
-	warning("Invalid C++ compiler '${custom_compiler}'. Defaulting to '${default_compiler}'.")
-	set(custom_compiler ${default_compiler})
-endif()
-
-set(CMAKE_CXX_COMPILER_ID ${custom_compiler} CACHE STRING "C++ compiler" FORCE)
-msg("Compiler: ${CMAKE_CXX_COMPILER}")
-
-## TODO:	Platform-aware stdandard library implementation
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "clang")
-#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
-endif()
+set(CMAKE_CXX_COMPILER ${custom_compiler} CACHE STRING "Custom compiler" FORCE)
 
 if(NOT (${build_type} STREQUAL "Release" OR ${build_type} STREQUAL "Debug" OR ${build_type} STREQUAL "RelWithDebInfo") )
-	warning("Invalid build type '${build_type}'. Defaulting to 'Release'.")
-	set(build_type Release)
+	warning("Invalid build type '${build_type}'. Defaulting to '${default_build_type}'.")
+	set(build_type ${default_build_type})
 endif()
-
-if(${build_type} STREQUAL "Debug")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
-elseif(${build_type} STREQUAL "Release")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-elseif(${build_type} STREQUAL "RelWithDebInfo")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -g")
-endif()
-
-msg("Compiler flags: ${CMAKE_CXX_FLAGS}")
 
 set(CMAKE_BUILD_TYPE ${build_type} CACHE STRING "Build type (Debug | Release | RelWithDebInfo)" FORCE)
+
+msg("Build type: ${CMAKE_BUILD_TYPE}")
+msg("Compiler: ${CMAKE_CXX_COMPILER}")
+if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+	msg("Compiler flags: ${CMAKE_CXX_FLAGS_RELEASE}")
+elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+	msg("Compiler flags: ${CMAKE_CXX_FLAGS_DEBUG}")
+elseif(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+	msg("Compiler flags: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+endif()
+

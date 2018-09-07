@@ -33,7 +33,7 @@ namespace Xor
 		for ( uint idx = 0; idx < output.size(); ++idx )
 		{
 			if ( ((idx == 0 || idx == 1) && output[idx] > boundary) ||
-				 ((idx == 2 || idx == 3) && output[idx] <= boundary) )
+			     ((idx == 2 || idx == 3) && output[idx] <= boundary) )
 			{
 				fitness -= std::fabs(output[idx] - boundary);
 			}
@@ -44,17 +44,17 @@ namespace Xor
 		_net.set_fitness(fitness);
 	}
 
-	bool setup(Conf& _conf)
+	bool setup()
 	{
-		_conf.data.add({0.0, 0.0}, 0);
-		_conf.data.add({1.0, 1.0}, 0);
-		_conf.data.add({0.0, 1.0}, 1);
-		_conf.data.add({1.0, 0.0}, 1);
+		data.add({0.0, 0.0}, 0);
+		data.add({1.0, 1.0}, 0);
+		data.add({0.0, 1.0}, 1);
+		data.add({1.0, 0.0}, 1);
 
 		{
 			dlog d;
 			d << "Samples: \n";
-			for (const auto& sample : _conf.data.get_samples())
+			for (const auto& sample : data->get_samples())
 			{
 				for (const auto& i : sample.input)
 				{
@@ -67,17 +67,16 @@ namespace Xor
 			}
 		}
 
-		_conf.fit.tgt = 4.0;
+		conf->env.evo.fit.tgt = 4.0;
 
-		if (_conf.node.tf.at(NR::O).size() == 0 ||
-			_conf.node.tf.at(NR::O).size() > 1)
+		if (conf->net.node.tf.at(NodeType::Output).size() == 0 ||
+		    conf->net.node.tf.at(NodeType::Output).size() > 1)
 		{
-			dlog() << "### Please specify exactly one transfer function at the output nodes.";
-			exit(EXIT_FAILURE);
+			die("Please specify exactly one transfer function at the output nodes.");
 		}
 		else
 		{
-			switch (*_conf.node.tf.at(NR::O).begin())
+			switch (*conf->net.node.tf.at(NodeType::Output).begin())
 			{
 			case TF::Tanh:
 				boundary = 0.0;
@@ -88,15 +87,13 @@ namespace Xor
 				break;
 
 			default:
-				dlog() << "### Invalid transfer function (" << *_conf.node.tf.at(NR::O).begin()
-					   << ") at the output";
-				exit(EXIT_FAILURE);
+				die("Invalid transfer function (", *conf->net.node.tf.at(NodeType::Output).begin(), ") at the output");
 			}
 		}
 
-		_conf.validate();
+		conf.validate();
 
-		dlog() << _conf;
+		dlog(*conf);
 		return true;
 	}
 }

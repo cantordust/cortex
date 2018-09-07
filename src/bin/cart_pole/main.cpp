@@ -21,7 +21,7 @@ int main( int argc, char* argv[] )
 	exp.setup(&CartPole::eval);
 	exp.run();
 
-	dlog() << "Experiment completed, exiting.";
+	dlog("Task completed, exiting.");
 
 	return 0;
 }

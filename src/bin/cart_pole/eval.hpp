@@ -8,7 +8,7 @@ namespace CartPole
 {
 	static std::mutex dump_mtx;
 
-	bool setup(Conf& _config);
+	bool setup();
 
 	void eval(Net& _net);
 

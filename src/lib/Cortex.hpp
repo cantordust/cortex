@@ -1,10 +1,10 @@
-#ifndef CORTEX_HPP
-#define CORTEX_HPP
+#ifndef CORTEX_LIB_HPP
+#define CORTEX_LIB_HPP
 
-#include "Experiment.hpp"
+#include "Task.hpp"
+#include "Env.hpp"
+#include "Net.hpp"
 #include "Data.hpp"
-#include "CmdLine.h"
+#include "Conf.hpp"
 
-using namespace Cortex;
-
-#endif // CORTEX_HPP
+#endif // CORTEX_LIB_HPP

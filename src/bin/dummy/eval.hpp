@@ -3,13 +3,9 @@
 
 #include "Cortex.hpp"
 
-using namespace Cortex;
-
 namespace Dummy
 {
-	bool setup(Conf& _config);
-
-	void eval(Net& _net);
+	bool setup();
 }
 
 #endif // EVAL_HPP

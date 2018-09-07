@@ -11,7 +11,7 @@ int main( int argc, char* argv[] )
 	Conf conf(config_file.getValue());
 	if (!setup(conf))
 	{
-		dlog() << "Setup failed!";
+		dlog("Setup failed!");
 		return 0;
 	}
 
@@ -22,6 +22,6 @@ int main( int argc, char* argv[] )
 	exp.setup(&WDBC::eval);
 	exp.run();
 
-	dlog() << "Experiment completed, exiting.";
+	dlog("Task completed, exiting.");
 	return 0;
 }

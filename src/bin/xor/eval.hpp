@@ -7,7 +7,7 @@ using namespace Cortex;
 
 namespace Xor
 {
-	bool setup(Conf& _conf);
+	bool setup();
 
 	void eval(Net& _net);
 }

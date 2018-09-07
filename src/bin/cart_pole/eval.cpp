@@ -50,8 +50,7 @@ namespace CartPole
 
 		if (steps >= Max::steps)
 		{
-			dlog() << "Network " << _net.id << " passed the initial test!\n"
-				   << "Testing generalisation...";
+			dlog("Network", _net.id, "passed the initial test!\n", "Testing generalisation...");
 
 			uint gen_count(1);
 			uint gen_steps(0);
@@ -68,17 +67,17 @@ namespace CartPole
 				}
 				else
 				{
-					dlog() << "\tNetwork " << _net.id << " passed generalisation test " << gen_count;
+					dlog("\tNetwork ", _net.id, "passed generalisation test", gen_count);
 				}
 				++gen_count;
 			}
 
 			if (champ)
 			{
-				dlog() << "Network " << _net.id << " has passed all generalisation tests!\n"
-					   << "Saving histograms...";
+				dlog d("Network ", _net.id, " has passed all generalisation tests!\n"
+				      , "Saving histograms...");
 				to_csv(histograms);
-				dlog() << "done!";
+				d << "done!";
 			}
 		}
 
@@ -94,7 +93,7 @@ namespace CartPole
 
 		/// Evaluate the network
 		while (steps <= Max::steps &&
-			   env.is_in_range())
+		       env.is_in_range())
 		{
 			_net.eval({env.norm_state()});
 			actions = _net.get_output();
@@ -139,8 +138,8 @@ namespace CartPole
 
 			// Sanity check
 			if (count == 0 ||
-				step == 0.0 ||
-				!(pos || neg))
+			    step == 0.0 ||
+			    !(pos || neg))
 			{
 				return false;
 			}
@@ -173,19 +172,19 @@ namespace CartPole
 		return carts;
 	}
 
-	bool setup(Conf& _conf)
+	bool setup()
 	{
 		Rnd::rng.seed(std::chrono::high_resolution_clock().now().time_since_epoch().count());
 
 		std::stringstream problems;
 
-		_conf.load("custom.dt", RK4::dt);
+		conf.load("custom.dt", RK4::dt);
 		RK4::dt2 = RK4::dt / 2.0;
 		RK4::dt6 = RK4::dt / 6.0;
 
-		_conf.load("custom.max.force", Max::force);
-		_conf.load("custom.max.theta", Max::theta);
-		_conf.load("custom.max.steps", Max::steps);
+		conf.load("custom.max.force", Max::force);
+		conf.load("custom.max.theta", Max::theta);
+		conf.load("custom.max.steps", Max::steps);
 		if (Max::force <= 0.0)
 		{
 			problems << "\t- Invalid max force (" << Max::force << ").\n";
@@ -200,69 +199,69 @@ namespace CartPole
 		}
 
 		// Default environment parameters
-		_conf.load("custom.def.env.g", g);
+		conf.load("custom.def.env.g", g);
 		if (g >= 0.0)
 		{
 			problems << "\t- Invalid gravitational acceleration (" << g << ").\n";
 		}
 
-		_conf.load("custom.def.env.track_len", Track::Def::track_len);
+		conf.load("custom.def.env.track_len", Track::Def::track_len);
 		if (Track::Def::track_len <= 0.0)
 		{
 			problems << "\t- Invalid track length (" << Track::Def::track_len << ").\n";
 		}
 		Max::pos = Track::Def::track_len / 2.0;
 
-		_conf.load("custom.def.env.with_vel", Track::Def::with_vel);
-		_conf.load("custom.def.env.coupled", Track::Def::coupled);
+		conf.load("custom.def.env.with_vel", Track::Def::with_vel);
+		conf.load("custom.def.env.coupled", Track::Def::coupled);
 		if (Track::Def::coupled)
 		{
-			_conf.load("custom.def.env.ks", Track::Def::ks);
+			conf.load("custom.def.env.ks", Track::Def::ks);
 			for (uint i = 0; i < Track::Def::ks.size(); ++i)
 			{
 				if (Track::Def::ks.at(i) <= 0.0)
 				{
 					problems << "\t- Invalid coefficient for spring " << (i + 1)
-							 << " (" << Track::Def::ks.at(i) << ").\n";
+					         << " (" << Track::Def::ks.at(i) << ").\n";
 				}
 			}
 		}
 
 		// Default cart parameters
-		_conf.load("custom.def.cart.pos", Cart::Def::pos);
-		_conf.load("custom.def.cart.vel", Cart::Def::vel);
-		_conf.load("custom.def.cart.mass", Cart::Def::mass);
+		conf.load("custom.def.cart.pos", Cart::Def::pos);
+		conf.load("custom.def.cart.vel", Cart::Def::vel);
+		conf.load("custom.def.cart.mass", Cart::Def::mass);
 		if (Cart::Def::mass <= 0.0)
 		{
 			problems << "\t- Invalid default cart mass (" << Cart::Def::mass << ").\n";
 		}
 
-		_conf.load("custom.def.cart.acc", Cart::Def::acc);
-		_conf.load("custom.def.cart.k_l", Cart::Def::k_l);
-		_conf.load("custom.def.cart.k_r", Cart::Def::k_r);
-		_conf.load("custom.def.cart.tfc", Cart::Def::tfc);
+		conf.load("custom.def.cart.acc", Cart::Def::acc);
+		conf.load("custom.def.cart.k_l", Cart::Def::k_l);
+		conf.load("custom.def.cart.k_r", Cart::Def::k_r);
+		conf.load("custom.def.cart.tfc", Cart::Def::tfc);
 		if (Cart::Def::tfc <= 0.0)
 		{
 			problems << "\t- Invalid default track friction coefficient (" << Cart::Def::tfc << ").\n";
 		}
 
 		// Default pole parameters
-		_conf.load("custom.def.pole.theta", Pole::Def::theta);
-		_conf.load("custom.def.pole.omega", Pole::Def::omega);
-		_conf.load("custom.def.pole.mass", Pole::Def::mass);
+		conf.load("custom.def.pole.theta", Pole::Def::theta);
+		conf.load("custom.def.pole.omega", Pole::Def::omega);
+		conf.load("custom.def.pole.mass", Pole::Def::mass);
 		if (Pole::Def::mass <= 0.0)
 		{
 			problems << "\t- Invalid default pole mass (" << Pole::Def::mass << ").\n";
 		}
 
-		_conf.load("custom.def.pole.len", Pole::Def::len);
+		conf.load("custom.def.pole.len", Pole::Def::len);
 		if (Pole::Def::len <= 0.0)
 		{
 			problems << "\t- Invalid default pole length (" << Pole::Def::len << ").\n";
 		}
 
-		_conf.load("custom.def.pole.alpha", Pole::Def::alpha);
-		_conf.load("custom.def.pole.hfc", Pole::Def::hfc);
+		conf.load("custom.def.pole.alpha", Pole::Def::alpha);
+		conf.load("custom.def.pole.hfc", Pole::Def::hfc);
 		if (Pole::Def::hfc <= 0.0)
 		{
 			problems << "\t- Invalid default hinge friction coefficient (" << Pole::Def::hfc << ").\n";
@@ -294,8 +293,7 @@ namespace CartPole
 
 		if (problems.str().size() > 0)
 		{
-			dlog() << "Setup failed due to the following problems:\n"
-				   << problems.str();
+			dlog("Setup failed due to the following problems:\n", problems.str());
 			return false;
 		}
 
@@ -347,12 +345,10 @@ namespace CartPole
 
 		// Compute target fitness
 //		_config.fit.tgt = Max::steps * (1 + Gen::envs.size());
-		_conf.fit.tgt = Max::steps * (Gen::tracks.size());
+		conf->fit.tgt = Max::steps * (Gen::tracks.size());
 
-		dlog() << "Generalisation environments: " << Gen::tracks.size()
-			   << "\nTarget fitness: " << _conf.fit.tgt;
-
-		_conf.validate();
+		dlog("Generalisation environments: ", Gen::tracks.size()
+		      , "\nTarget fitness: ", conf->fit.tgt);
 
 		return true;
 	}

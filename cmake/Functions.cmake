@@ -18,6 +18,11 @@ macro(header_dirs return_list dir)
 	endforeach()
 	list(REMOVE_DUPLICATES dir_list)
 	set(${return_list} "${dir_list}")
+
+#	foreach(hdir ${dir_list})
+#		msg("Header dir: ${hdir}")
+#	endforeach()
+
 endmacro()
 
 # Compile the library
@@ -32,11 +37,11 @@ function(setup_lib)
 	set_target_properties(${lib_name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${lib_dir})
 	target_include_directories(
 		${lib_name}
-		PUBLIC
+		PRIVATE
 		${lib_header_dirs}
 		${dep_header_dirs}
 		)
-	get_property(inc_dirs TARGET ${lib_name} PROPERTY INCLUDE_DIRECTORIES)
+#	get_property(inc_dirs TARGET ${lib_name} PROPERTY INCLUDE_DIRECTORIES)
 #	foreach(incdir ${inc_dirs})
 #		msg("Included dir: ${incdir}")
 #	endforeach()
@@ -44,11 +49,9 @@ function(setup_lib)
 endfunction()
 
 # Compile all binaries and process all configuration templates
-function(setup_bin)
+function(setup_bin bin_name)
 
-	file(GLOB bin_list RELATIVE ${bin_src_dir} ${bin_src_dir}/*)
-
-	foreach(bin_name ${bin_list})
+	if(EXISTS ${bin_src_dir}/${bin_name})
 		message(STATUS "*** Configuring executable ${bin_name}")
 
 		set(bin_src_header_dirs "")
@@ -80,7 +83,9 @@ function(setup_bin)
 			msg("Configured template ${bin_dir}/${bin_name}/${config_template}")
 			configure_file(${res_dir}/${config_template} ${bin_dir}/${bin_name}/${config_template})
 		endif()
-	endforeach()
+	else()
+		warning("Directory ${bin_src_dir}/${_dir} doesn't exist")
+	endif()
 
 endfunction()
 

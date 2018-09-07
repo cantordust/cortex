@@ -3,6 +3,8 @@ include(ExternalProject)
 # Parallel network evaluation using threads
 find_package(Threads REQUIRED)
 
+include_directories(${dep_dir}/armadillo/include)
+
 #if (${use_blas})
 
 #	set(arma_dir ${dep_dir}/armadillo)

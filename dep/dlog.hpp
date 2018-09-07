@@ -1,264 +1,276 @@
 #ifndef DLOG_HPP
 #define DLOG_HPP
 
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <future>
+#include <queue>
+#include <mutex>
+#include <iomanip>
+
 #include "threadpool.hpp"
 
 namespace Async
 {
-	template<typename T> using sp = std::shared_ptr<T>;
-	using ptask = std::packaged_task<void()>;
-	using vfun = std::function<void()>;
+	template<typename T1, typename T2>
+	using hmap = std::unordered_map<T1, T2>;
 
-	/// Mutex for accessing the associated stream.
-	static std::mutex output_mutex;
+	/// Set of strings affixed to the input
+	/// at various positions.
+	struct AffixSet
+	{
+		/// Default values
+		struct Default
+		{
+			inline static uint log_level{0};
+			inline static std::string prefix{""};
+			inline static std::string infix{" "};
+			inline static std::string suffix{"\n"};
+		};
 
-	/// \brief The dlog class
-	/// \details
-	/// Dlog ("debug log") is a tiny header-only debug log library
-	/// for printing output from multiple threads into arbitrary streams
-	/// without garbling the output.
+		uint log_level{Default::log_level};
+		std::string prefix{Default::prefix};
+		std::string infix{Default::infix};
+		std::string suffix{Default::suffix};
+	};
+
+	/// @class The dlog class.
+	/// @details
+	/// dlog ("debug log") is a tiny header-only library
+	/// for printing output from multiple threads to
+	/// arbitrary streams without garbling the output.
 	class dlog
 	{
+
+	public:
+
+		/// Version string.
+		inline static const std::string version{"0.2.3"};
+
 	private:
 
-		/// Static members for various defaults.
-		static uint& default_log_level()
-		{
-			static uint d_log_level = 0;
-			return d_log_level;
-		}
-		static std::string& default_prefix()
-		{
-			static std::string d_prefix = "";
-			return d_prefix;
-		}
+		/// Threadpool for multi-threaded output.
+		inline static ThreadPool tp;
 
-		static std::string& default_infix()
-		{
-			static std::string d_infix = "";
-			return d_infix;
-		}
+		/// Default log level.
+		inline static uint log_level{0};
 
-		static std::string& default_suffix()
-		{
-			static std::string d_suffix = "";
-			return d_suffix;
-		}
+		/// Mutex for accessing the print queue.
+		inline static std::mutex semaphore_mutex;
 
-		/// Stream associated with this log.
-		std::ostream& strm;
+		/// Pointers to output streams and
+		/// corresponding mutexes.
+		inline static hmap<std::ostream*, std::mutex> semaphores;
 
-		/// Member vars for serialising futures in the right
-		/// order and managing the internal buffer.
-		std::queue<vfun> output_queue;
+		bool out{true};
 
 		/// Strings appended to the input.
 		/// If not set in the constructor, these
 		/// are given the default values.
-		sp<std::string> prefix;
-		sp<std::string> infix;
-		sp<std::string> suffix;
+		AffixSet afx;
 
-		sp<std::stringstream> buffer;
+		/// Stream associated with this log.
+		std::ostream& stream{std::cout};
 
-		/// Variable determining whether
-		/// the input is printed or ignored.
-		bool out;
-
-		class Printer
-		{
-		private:
-
-			struct
-			{
-				std::mutex mtx;
-				std::queue<std::queue<vfun>> queue;
-				std::condition_variable semaphore;
-			} printer;
-
-			ThreadPool tp;
-
-		public:
-
-			Printer(const uint _workers = std::thread::hardware_concurrency())
-				:
-				  tp(_workers)
-			{}
-
-			~Printer()
-			{
-				tp.wait();
-			}
-
-			inline void enqueue(std::queue<vfun>&& _queue)
-			{
-				glock queue_lock(printer.mtx);
-				printer.queue.emplace(std::move(_queue));
-
-				tp.enqueue([&]
-				{
-					std::queue<vfun> queue;
-					vfun fun;
-					{
-						ulock printer_lock(printer.mtx);
-
-						printer.semaphore.wait(printer_lock, [&]{ return !printer.queue.empty(); });
-						queue = std::move(printer.queue.front());
-						printer.queue.pop();
-					}
-
-					while (!queue.empty())
-					{
-						fun = std::move(queue.front());
-						queue.pop();
-						fun();
-					}
-				});
-			}
-
-			inline static Printer& get()
-			{
-				static Printer p;
-				return p;
-			}
-		};
+		/// Buffer for storing the output.
+		std::stringstream buffer;
 
 	public:
 
-		dlog(const uint _log_level = 0,
-			 std::ostream& _strm = std::cout,
-			 const std::string _prefix = "",
-			 const std::string _infix = "",
-			 const std::string _suffix = "")
+		template<typename ... Args>
+		dlog(std::ostream& _stream, AffixSet _afx, Args&& ... _args)
 			:
-			  strm(_strm),
-			  prefix(std::make_shared<std::string>(_prefix.empty() ? get_default_prefix() : _prefix)),
-			  infix(std::make_shared<std::string>(_infix.empty() ? get_default_infix() : _infix)),
-			  suffix(std::make_shared<std::string>(_suffix.empty() ? get_default_suffix() : _suffix)),
-			  buffer(std::make_shared<std::stringstream>()),
-			  out(_log_level == 0 || _log_level >= get_default_log_level())
+			  out(_afx.log_level == 0 || _afx.log_level >= log_level),
+			  afx(_afx),
+			  stream(_stream)
 		{
-			if (out)
-			{
-				auto task(std::make_shared<ptask>([buf = buffer, pref = prefix]
-				{
-					*buf << *pref;
-				}));
-				output_queue.emplace([=]{ (*task)(); });
-			}
+			init(std::forward<Args>(_args)...);
+		}
+
+		template<typename ... Args>
+		dlog(std::ostream& _stream, Args&& ... _args)
+			:
+			  stream(_stream)
+		{
+			init(std::forward<Args>(_args)...);
+		}
+
+		template<typename ... Args>
+		dlog(std::ofstream& _stream, Args&& ... _args)
+			:
+			  dlog(static_cast<std::ostream&>(_stream), std::forward<Args>(_args)...)
+		{}
+
+		template<typename ... Args>
+		dlog(AffixSet _afx, Args&& ... _args)
+			:
+			  out(_afx.log_level == 0 || _afx.log_level >= log_level),
+			  afx(_afx)
+		{
+			init(std::forward<Args>(_args)...);
+		}
+
+		template<typename ... Args>
+		dlog(Args&& ... _args)
+		{
+			init(std::forward<Args>(_args)...);
 		}
 
 		~dlog()
 		{
-			flush();
-		}
-
-		inline void flush()
-		{
 			if (out)
 			{
-				auto task(std::make_shared<ptask>([buf = buffer, suf = suffix, &stream = strm]
-				{
-					*buf << *suf << '\n';
-					glock output_lock(output_mutex);
-					stream << buf->str();
-				}));
-				output_queue.emplace([=]{ (*task)(); });
-				Printer::get().enqueue(std::move(output_queue));
+				buffer << afx.suffix;
+				flush(stream, buffer.str());
 			}
 		}
 
 		template<typename T>
-		dlog& operator<<(const T& _t)
+		friend dlog& operator << (dlog& _dlog, T&& _t)
+		{
+			_dlog.gobble(std::forward<T>(_t));
+			return _dlog;
+		}
+
+		friend dlog& operator << (dlog& _dlog, std::ostream& (*_fp)(std::ostream&))
+		{
+			if (_dlog.out)
+			{
+				_dlog.buffer << _fp;
+			}
+			return _dlog;
+		}
+
+		///=====================================
+		/// Other convenience functions.
+		///=====================================
+
+		template<typename T>
+		dlog& add(T&& _t)
 		{
 			if (out)
 			{
-				std::stringstream ss;
-				ss << _t;
-				auto task(std::make_shared<ptask>([buf = buffer, inf = infix, tp = std::make_shared<std::string>(ss.str())]
-				{
-					*buf << *inf << *tp;
-				}
-				));
-				output_queue.emplace([=]{ (*task)(); });
+				buffer << std::forward<T>(_t);
 			}
 			return *this;
 		}
 
-		dlog& operator<<(std::ostream& (*_fp)(std::ostream&))
+		template<typename T>
+		dlog& operator + (T&& _t)
+		{
+			add(std::forward<T>(_t));
+			return *this;
+		}
+
+		template<typename T>
+		dlog& format(T&& _t, const uint _width)
 		{
 			if (out)
 			{
-				auto task(std::make_shared<ptask>([buf = buffer, inf = infix, fp = _fp]
-				{
-					*buf << *inf << fp;
-				}
-				));
-				output_queue.emplace([=]{ (*task)(); });
+				buffer << std::setw(_width) << std::forward<T>(_t);
 			}
 			return *this;
 		}
 
-		template<typename T, typename std::enable_if<!std::is_void<T>::value, int>::type = 0>
-		dlog& operator<<(std::future<T>& _future)
+		///=====================================
+		/// Output formatting
+		///=====================================
+
+		inline dlog& left()
 		{
 			if (out)
 			{
-				sp<std::future<T>> future(std::make_shared<std::future<T>>(std::move(_future)));
-				auto task(std::make_shared<ptask>([buf = buffer, inf = infix, f = future]
-				{
-					*buf << *inf << f->get();
-				}
-				));
-				output_queue.emplace([=]{ (*task)(); });
+				buffer << std::left;
 			}
 			return *this;
 		}
 
-		template<typename T, typename std::enable_if<std::is_void<T>::value, int>::type = 0>
-		dlog& operator<<(std::future<T>& _future)
+		inline dlog& internal()
 		{
+			if (out)
+			{
+				buffer << std::internal;
+			}
 			return *this;
 		}
 
-		static inline void set_default_log_level(const uint _level)
+		inline dlog& right()
 		{
-			default_log_level() = _level;
+			if (out)
+			{
+				buffer << std::right;
+			}
+			return *this;
 		}
 
-		static inline const uint get_default_log_level()
+		inline dlog& setfill(const char _ch = ' ')
 		{
-			return default_log_level();
+			if (out)
+			{
+				buffer << std::setfill(_ch);
+			}
+			return *this;
 		}
 
-		static inline void set_default_prefix(const std::string& _prefix)
+		///=====================================
+		/// Static functions.
+		///=====================================
+
+		static void set_log_level(const uint _level)
 		{
-			default_prefix() = _prefix;
+			log_level = _level;
 		}
 
-		static inline const std::string& get_default_prefix()
+		static void set_threads(const uint _count)
 		{
-			return default_prefix();
+			tp.resize(_count);
 		}
 
-		static inline void set_default_infix(const std::string& _infix)
+	private:
+
+		template<typename ... Args>
+		void init() {}
+
+		template<typename Arg, typename ... Args>
+		void init(Arg&& _arg, Args&& ... _args)
 		{
-			default_infix() = _infix;
+			if (out)
+			{
+				buffer << afx.prefix << std::forward<Arg>(_arg);
+				gobble(std::forward<Args>(_args)...);
+			}
 		}
 
-		static inline const std::string& get_default_infix()
+		template<typename ... Args>
+		void gobble(Args&& ... _args)
 		{
-			return default_infix();
+			if (out)
+			{
+				std::array<int, sizeof...(_args)> status{(buffer << afx.infix << std::forward<Args>(_args), 0) ...};
+			}
 		}
 
-		static inline void set_default_suffix(const std::string& _suffix)
+		static void flush(std::ostream& _stream, std::string&& _content)
 		{
-			default_suffix() = _suffix;
-		}
-
-		static inline const std::string& get_default_suffix()
-		{
-			return default_suffix();
+			if (_content.size() > 0)
+			{
+				tp.enqueue([&, content = std::move(_content)]
+				{
+					glock lock(semaphore_mutex);
+					std::ostream* os(std::addressof(_stream));
+					if (os)
+					{
+						glock lk(semaphores[os]);
+						*os << content;
+					}
+					else
+					{
+						semaphores.erase(os);
+					}
+				});
+			}
 		}
 	};
 }

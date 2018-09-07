@@ -59,7 +59,7 @@ namespace CartPole
 
 		uint pole_count();
 
-		friend std::ostream& operator << (std::ostream& _strm, const Track& _env);
+		friend os& operator << (os& _os, const Track& _env);
 	};
 }
 

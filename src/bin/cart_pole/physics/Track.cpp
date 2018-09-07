@@ -41,9 +41,9 @@ namespace CartPole
 		else
 		{
 			return std::accumulate(std::next(_v.begin()),
-								   _v.end(),
-								   std::to_string(_v.front()),
-								   [](std::string _cur, const real _s)
+			                       _v.end(),
+			                       std::to_string(_v.front()),
+			                       [](const std::string& _cur, const real _s)
 			{
 				return _cur + "," + std::to_string(_s);
 			});
@@ -132,29 +132,29 @@ namespace CartPole
 		return poles;
 	}
 
-	std::ostream& operator<< (std::ostream& _strm, const Track& _env)
+	os& operator<< (os& _os, const Track& _env)
 	{
-		_strm.setf(std::ios_base::boolalpha);
+		_os.setf(std::ios_base::boolalpha);
 
-		_strm << "\n-------------------- Env -------------------------\n";
-		_strm << "\n\nMax:"
-			  << "\n\tforce: " << Max::force << " N"
-			  << "\n\toffset angle: " << Max::theta << " deg (" << rad(Max::theta) << " rad)"
-			  << "\n\tcart offset: " << Max::pos << " m"
-			  << "\n\tsteps: " << Max::steps
-			  << "\n\nRK4:"
-			  << "\n\tdt: " << RK4::dt << " s"
-			  << "\n\tGravitational acceleration: " << g << " m/s^2"
-			  << "\n\tTrack length: " << Track::Def::track_len << " m"
-			  << "\n\tProvide velocity information: " << Track::Def::with_vel
-			  << "\n\tCoupled oscillator mode: " << Track::Def::coupled
-			  << "\n\tSpring coefficients:" << _env.as_csv(Track::Def::ks);
+		_os << "\n-------------------- Env -------------------------\n";
+		_os << "\n\nMax:"
+		      << "\n\tforce: " << Max::force << " N"
+		      << "\n\toffset angle: " << Max::theta << " deg (" << rad(Max::theta) << " rad)"
+		      << "\n\tcart offset: " << Max::pos << " m"
+		      << "\n\tsteps: " << Max::steps
+		      << "\n\nRK4:"
+		      << "\n\tdt: " << RK4::dt << " s"
+		      << "\n\tGravitational acceleration: " << g << " m/s^2"
+		      << "\n\tTrack length: " << Track::Def::track_len << " m"
+		      << "\n\tProvide velocity information: " << Track::Def::with_vel
+		      << "\n\tCoupled oscillator mode: " << Track::Def::coupled
+		      << "\n\tSpring coefficients:" << _env.as_csv(Track::Def::ks);
 
 		for (const Cart& cart : _env.carts)
 		{
-			_strm << cart;
+			_os << cart;
 		}
-		_strm << "\n--------------------------------------------------\n";
-		return _strm;
+		_os << "\n--------------------------------------------------\n";
+		return _os;
 	}
 }

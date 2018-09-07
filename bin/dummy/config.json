@@ -1,50 +1,133 @@
 {
-    "eco":
-    {
-		"search": "fitness",
-        "init":
-        {
-            "size" : 10
+    "data": {
+        "image": {
+            "depth": 0,
+            "height": 0,
+            "order": "Undef",
+            "steps": {
+                "depth": 0,
+                "height": 0,
+                "width": 0
+            },
+            "width": 0
         },
-        "max":
-        {
-            "age" :  1,
-            "size": 30
+        "samples": 0,
+        "sets": {
+            "Test": 0.10000000149011612,
+            "Training": 0.800000011920929,
+            "Validation": 0.10000000149011612
+        },
+        "type": "RealValued"
+    },
+    "fitness": {
+        "stat": {
+            "alpha": 0.25
         }
     },
-    "node":
-    {
-        "roles":
-        {
-            "i": 10000,
-            "h": 1000,
-            "o": 16
+    "learning": {
+        "mode": "Mutation",
+        "mutation": {
+            "scale": 0.05000000074505806
+        },
+        "stdp": {
+            "dp_ratio": 1.0499999523162842,
+            "rate": 0.004999999888241291
         }
     },
-	"link" :
-	{
-		"rec" : false
-	},
-    "mut":
-    {
-    	"prob":
-    	{
-    		"add_node" : 3,
-    		"erase_node" : 5,
-    		"erase_link" : 50,
-    		"add_link" : 100
-    	}
+    "link": {
+        "types": [
+            "Skip",
+            "Lateral",
+            "Forward"
+        ],
+        "weight": {
+            "init": {
+                "dist": "Normal",
+                "sd": 0.5,
+                "value": 0.0
+            },
+            "lbound": 1.1754943508222875e-38,
+            "mutation": {
+                "sd": 1.0
+            },
+            "ubound": 3.4028234663852886e+38
+        }
     },
-    "fit" :
-    {
-        "tgt" :  2.8
+    "net": {
+        "init": {
+            "count": 50,
+            "layers": [
+            {
+				"evolvable": false,
+				"type": "Regular",
+				"nodes": 10
+            },
+            {
+				"evolvable": false,
+				"type": "Regular",
+				"nodes": 10
+            }
+            ]
+        },
+        "max": {
+            "age": 50,
+            "count": 200
+        },
+        "rf": {
+            "adaptive": {
+                "alpha": 0.25
+            },
+            "gaussian": {
+                "nodes": 10,
+                "threshold": 0.949999988079071,
+                "width": 1.5
+            },
+            "type": "Direct"
+        },
+        "spike": {
+            "enc": "Time",
+            "lif": true,
+            "max": {
+                "delay": 70.0
+            },
+            "mod": 0.8999999761581421
+        },
+        "type": "Classical"
     },
-    "sys" :
-    {
-    	"threads" : 4,
-    	"runs" : 1
+    "node": {
+        "tau": {
+            "init": {
+                "dist": "Normal",
+                "sd": 1.0,
+                "value": 0.0
+            },
+            "lbound": 1.1754943508222875e-38,
+            "mutation": {
+                "sd": 1.0
+            },
+            "ubound": 3.4028234663852886e+38
+        },
+        "tf": {
+            "Convolutional": [
+                "ReLU", "Tanh"
+            ],
+            "Regular": [
+                "Tanh"
+            ]
+        }
     },
-	"custom" :
-    {
+    "species": {
+        "enabled": true,
+        "init": {
+            "count": 5
+        },
+        "max": {
+            "count": 20
+        }
+    },
+    "task": {
+        "generations": 1000,
+        "mode": "Automatic",
+        "runs": 1
     }
 }

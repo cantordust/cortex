@@ -96,7 +96,7 @@ namespace CartPole
 		/// using the RK4 integration method.
 		void update(const real _action);
 
-		friend std::ostream& operator << (std::ostream& _strm, const Cart& _cart);
+		friend os& operator << (os& _os, const Cart& _cart);
 	};
 }
 

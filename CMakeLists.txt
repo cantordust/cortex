@@ -1,24 +1,23 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.6)
 
 project(cortex CXX)
 
 # Select a custom C++ compiler.
 #
-# Recognised options: clang | gcc
+# Default: /usr/bin/clang++
 #
-# Default: clang
-#
-# NOTE: C++14 support required
+# NOTE: C++17 support required
 #
 # TODO: Test other compilers (msvc, mingw, etc.)
 
-set(custom_compiler clang)
+set(custom_compiler /usr/bin/clang++)
+#set(custom_compiler /usr/bin/g++)
 
 # Select build type
 #
 # Recognised options: Release | Debug | RelWithDebInfo
 #
-# Default: Release
+# Default: Debug
 
 set(build_type Debug)
 
@@ -90,8 +89,11 @@ header_dirs(dep_header_dirs ${dep_dir})
 
 setup_lib()
 
-########################
-# Binaries (experiments)
-########################
+##########
+# Binaries
+##########
 
-setup_bin()
+setup_bin(dummy)
+#setup_bin(xor)
+#setup_bin(wdbc)
+#setup_bin(cart_pole)

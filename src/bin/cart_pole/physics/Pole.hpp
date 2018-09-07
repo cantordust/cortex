@@ -91,7 +91,7 @@ namespace CartPole
 		/// Effective force
 		real f_eff();
 
-		friend std::ostream& operator<< (std::ostream& _strm, const Pole& _pole);
+		friend os& operator<< (os& _os, const Pole& _pole);
 	};
 }
 

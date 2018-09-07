@@ -7,13 +7,13 @@ using namespace Cortex;
 
 namespace WDBC
 {
-	bool setup(Conf& _conf);
+	bool setup();
 
 	void eval(Net& _net);
 
-	bool load_data(Conf& _conf);
+	bool load_data();
 
-	void test(Conf& _conf);
+	void test();
 }
 
 #endif // EVAL_HPP
