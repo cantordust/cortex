@@ -28,53 +28,6 @@ namespace Cortex
 	}
 
 	///=====================================
-	/// Bookkeeping
-	///=====================================
-
-	void Task::print_stats()
-	{
-		/// Stats report
-		dlog report;
-
-		std::string header("---------------[ Task statistics ]---------------");
-		std::vector<std::string> fields{"Variable", "Mean", "SD"};
-		std::vector<uint> width;
-		uint total(std::accumulate(fields.cbegin(),
-								   fields.cend(),
-								   0,
-								   [](const uint _sum, const std::string& _field)
-		{
-			return _sum + _field.size();
-		}));
-
-		/// Compute the field sizes.
-		for (const auto& f : fields)
-		{
-			width.emplace_back((f.size() / flt(total)) * header.size() - 2);
-		}
-
-		/// Header
-		report + "\n" + header + "\n";
-		report.left().setfill(' ');
-		for (uint f = 0; f < fields.size(); ++f)
-		{
-			report.add(" ").format(fields[f], width[f]).add((f < fields.size() - 1 ? "|" : ""));
-		}
-		report + "\n" + std::string(header.size(), '-');
-
-		for (const auto& stat : stats)
-		{
-			uint idx(0);
-			report.add("\n ").format(pretty(stat.first), width[idx]);
-			report.add("| ").format(stat.second.mean, width[++idx]);
-			report.add("| ").format(stat.second.sd(), width[++idx]);
-		}
-
-		/// Bottom line
-		report + "\n" + std::string(header.size(), '-') + "\n";
-	}
-
-	///=====================================
 	/// Setup and execution
 	///=====================================
 
@@ -143,18 +96,44 @@ namespace Cortex
 	{
 		task = [&]
 		{
+			/// Task run counter
 			uint run(0);
+
+			dlog report;
 
 			while (++run <= conf->task.runs)
 			{
+				report << "\n==============[ Run" << run << "/" << conf->task.runs << "]==============\n";
+
 				require(Env::initialise(), "Environment initialisation failed. Exiting.");
 
-				dlog("\n==============[ Run", run, "/", conf->task.runs, "]==============\n");
+				/// Add a new run to the history.
+				Task::history.new_run();
 
-				while (Env::stats[Stat::Generations].value < conf->task.generations)
+				/// Generation counter
+				uint gen(0);
+
+				/// Store the number of evaluations from the last run.
+				/// The number of evaluations for this run is computed
+				/// by subtracting this stored number from the number
+				/// of completed tasks in the threadpool.
+				uint evals(threadpool.tasks_completed());
+
+				while (++gen <= conf->task.generations)
 				{
+//					/// Switch to learning phase
+					Env::phase = Phase::Learning;
+
+					report << "==========[ Generation" << gen << "|" << Env::phase << "phase ]==========\n";
+
 //					/// Evaluate the population
-//					Env::evaluate();
+//					for (const auto& net : Env::nets)
+//					{
+//						Task::threadpool.enqueue(Task::evaluate<Stage::Train>, std::ref(*net));
+//					}
+
+					/// Wait for the threadpool to sync.
+//					Task::threadpool.sync();
 
 //					/// Check if the task has been solved.
 //					if (is_solved())
@@ -162,24 +141,28 @@ namespace Cortex
 //						break;
 //					}
 
+					/// Switch to evolution phase
+					Env::phase = Phase::Evolution;
+
+					report << "==========[ Generation" << gen << "|" << Env::phase << "phase ]==========\n";
+
 					/// Evolve the environment
 //					Env::evolve();
 
-					/// Update the statistics.
-					Env::stats[Stat::Generations].add(1);
+					/// Update the history for this run.
+					history.add(Stat::Nets, Env::nets.size());
+					history.add(Stat::Species, Env::species.size());
 				}
 
-				/// Update the global statistics
-				for (const auto& stat : Env::stats)
-				{
-					stats[stat.first].update(stat.second.value);
-				}
+				/// Update the history.
+				history.add(Stat::SuccessRate, is_solved() ? 1 : 0);
+				history.add(Stat::Generations, gen - 1);
+				history.add(Stat::Evaluations, threadpool.tasks_completed() - evals);
 			}
-
-			threadpool.sync();
-
-			print_stats();
 		};
+
+		/// Print statistics about the task.
+		history.print();
 	}
 
 	bool Task::is_solved(const NetPtr& _net, const bool _reset)
@@ -198,7 +181,6 @@ namespace Cortex
 			{
 				solved = true;
 				Env::champ = _net.get();
-				Env::stats[Stat::SuccessRate].add(1);
 				threadpool.stop();
 			}
 		}

@@ -27,7 +27,6 @@ namespace Cortex
 			id = 0;
 			return id;
 		}
-		Env::stats[Stat::Species].add(1);
 		return ++id;
 	}
 

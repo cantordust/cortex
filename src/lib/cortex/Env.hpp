@@ -27,9 +27,6 @@ namespace Cortex
 		/// The fittest network.
 		inline static Net* champ;
 
-		/// Statistics for the current environment.
-		inline static hmap<Stat, SMAStatPack> stats;
-
 	public:
 
 		///=====================================
@@ -56,12 +53,8 @@ namespace Cortex
 		Env operator = (Env&& _other) = delete;
 
 		///=====================================
-		/// Bookkeeping
+		/// Initialisation
 		///=====================================
-
-		/// @brief Print statistics about the environment
-		/// (number of networks and species, evaluations, etc.)
-		static void print_stats();
 
 		/// @brief Initialise the environment.
 		static bool initialise();
@@ -91,13 +84,6 @@ namespace Cortex
 		/// @brief Get the offset of the number of elements relative to
 		/// the mean number of elements of that type.
 		static real get_offset(const ElemType _elem, const uint _count);
-
-		///=====================================
-		/// Evaluation
-		///=====================================
-
-		/// @brief Network evaluation.
-		static void evaluate();
 
 		///=====================================
 		/// Evolution

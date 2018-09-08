@@ -445,6 +445,139 @@ namespace Cortex
 		}
 	};
 
+	///=====================================
+	/// @class Class holding a record of
+	/// stats for a number of runs.
+	///=====================================
+	class History
+	{
+	private:
+
+		bool closed{false};
+
+		/// A record for a single run.
+		struct Archive
+		{
+			/// Statistics for a single run.
+			SMAStat stats;
+
+			/// Archive of individual values
+			/// obtained throughout the run.
+			std::vector<uint> archive;
+
+			void add(const uint _val)
+			{
+				archive.emplace_back(_val);
+				stats.update(_val);
+			}
+		};
+
+		/// Global statistics
+		hmap<Stat, SMAStat> stats;
+
+		hmap<uint, hmap<Stat, Archive>> runs;
+
+	public:
+
+		~History()
+		{
+			if (!closed)
+			{
+				close();
+			}
+			print();
+		}
+
+		/// @brief Insert an empty record for a new run.
+		void new_run()
+		{
+			if (!closed)
+			{
+				runs[runs.size() + 1] = {};
+			}
+		}
+
+		/// @brief Add a new entry to the record for @p _stat
+		void add(const Stat _stat, const uint _val)
+		{
+			if (!closed)
+			{
+				runs[runs.size()][_stat].add(_val);
+			}
+		}
+
+		/// @brief Compute the global statistics and finalise.
+		void close()
+		{
+			for(const auto& run : runs)
+			{
+				for (const auto& stat : run.second)
+				{
+					stats[stat.first].update(stat.second.archive.back());
+				}
+			}
+			closed = true;
+		}
+
+		/// @brief Get a reference to the statistics.
+		const auto& get()
+		{
+			return runs;
+		}
+
+		/// @todo Tabulate statistics.
+		void print()
+		{
+			/// Stats report
+			dlog report;
+
+			std::string header("--------------------[ Task statistics ("
+							   + std::to_string(runs.size())
+							   + " run"
+							   + (runs.size() == 1 ? "" : "s")
+							   + ") ]--------------------");
+			std::vector<std::string> fields{"Variable", "Mean", "SD"};
+			std::vector<uint> width;
+			uint total(std::accumulate(fields.cbegin(),
+									   fields.cend(),
+									   0,
+									   [](const uint _sum, const std::string& _field)
+			{
+				return _sum + _field.size();
+			}));
+
+			/// Compute the field sizes.
+			for (const auto& f : fields)
+			{
+				width.emplace_back((f.size() / flt(total)) * header.size() - 2);
+			}
+
+			/// Header
+			report + "\n" + header + "\n";
+
+			/// Justify left and set the filler to ' '.
+			report.left().setfill(' ');
+
+			/// Print stat fields
+			for (uint f = 0; f < fields.size(); ++f)
+			{
+				report.add(" ").format(fields[f], width[f]).add((f < fields.size() - 1 ? "|" : ""));
+			}
+			report + "\n" + std::string(header.size(), '-');
+
+			for (const auto& stat : stats)
+			{
+				uint idx(0);
+				report.add("\n ").format(pretty(stat.first), width[idx]);
+				report.add("| ").format(stat.second.mean, width[++idx]);
+				report.add("| ").format(stat.second.sd(), width[++idx]);
+			}
+
+			/// Bottom line
+			report + "\n" + std::string(header.size(), '-') + "\n";
+		}
+	};
+
 	///=============================================================================
 	///	Exception handling.
 	///=============================================================================

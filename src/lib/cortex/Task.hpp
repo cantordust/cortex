@@ -28,10 +28,10 @@ namespace Cortex
 		/// The actual task to execute
 		inline static std::function<void()> task = []{};
 
-		/// Statistics about the task -
-		/// network and species count,
+		/// Statistics and individual records about the task -
+		/// number of runs, network and species count,
 		/// success rate, etc.
-		inline static hmap<Stat, SMAStat> stats;
+		inline static History history;
 
 //		/// Function used for evaluation / training.
 //		inline static EvalFunction train;
@@ -59,13 +59,6 @@ namespace Cortex
 		///=====================================
 
 		Task& operator = (const Task& _other) = delete;
-
-		///=====================================
-		/// Bookkeeping
-		///=====================================
-
-		/// @brief Print statistics about the task
-		static void print_stats();
 
 		///=====================================
 		/// Setup and execution

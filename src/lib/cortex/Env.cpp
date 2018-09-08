@@ -7,52 +7,8 @@
 namespace Cortex
 {
 	///=====================================
-	/// Bookkeeping
+	/// Initialisation
 	///=====================================
-
-	void Env::print_stats()
-	{
-		/// Stats report
-		dlog report;
-
-		std::string header("------------[ Environment statistics ]------------");
-		std::vector<std::string> fields{"Variable", "Value", "Mean", "SD"};
-		std::vector<uint> width;
-		uint total(std::accumulate(fields.cbegin(),
-								   fields.cend(),
-								   0,
-								   [](const uint _sum, const std::string& _field)
-		{
-			return _sum + _field.size();
-		}));
-
-		/// Compute the field sizes.
-		for (const auto& f : fields)
-		{
-			width.emplace_back((f.size() / flt(total)) * title.size() - 2);
-		}
-
-		/// Header
-		report + "\n" + title + "\n";
-		report.left().setfill('_');
-		for (uint f = 0; f < fields.size(); ++f)
-		{
-			report.add(" ").format(fields[f], width[f]).add((f < fields.size() - 1 ? "|" : ""));
-		}
-		report + "\n" + std::string(title.size(), '-') + "\n";
-
-		for (const auto& stat : stats)
-		{
-			uint idx(0);
-			report.add("\n ").format(pretty(stat.first), width[idx]);
-			report.add("| ").format(stat.second.value, width[++idx]);
-			report.add("| ").format(stat.second.mean, width[++idx]);
-			report.add("| ").format(stat.second.sd(), width[++idx]);
-		}
-
-		/// Bottom line
-		report + "\n" + std::string(title.size(), '-') + "\n";
-	}
 
 	bool Env::initialise()
 	{
@@ -76,13 +32,6 @@ namespace Cortex
 		/// Clear the species and network containers.
 		nets.clear();
 		species.clear();
-
-		/// Reset the statistics.
-		stats.clear();
-		for (const auto& var : values<Stat>)
-		{
-			stats[var.first].reset();
-		}
 
 		///=================
 		/// Generate species.
@@ -230,37 +179,12 @@ namespace Cortex
 	}
 
 	///=====================================
-	/// Evaluation
-	///=====================================
-
-	void Env::evaluate()
-	{
-		/// Switch to learning phase
-		phase = Phase::Learning;
-
-		dlog("==========[ Generation ", stats[Stat::Generations].value, " | ", phase, " phase ]==========");
-
-//		for (const auto& net : nets)
-//		{
-//			Task::threadpool.enqueue(Task::evaluate, std::ref(*net));
-//		}
-
-//		Task::threadpool.sync();
-
-		stats[Stat::Evaluations].add(Task::threadpool.tasks_completed());
-	}
-
-	///=====================================
 	/// Evolution
 	///=====================================
 
 	void Env::evolve()
 	{
-		/// Switch to evolution phase
-		phase = Phase::Evolution;
-
-		dlog d("==========[ Generation", stats[Stat::Generations].value, " | ", phase, "phase ]==========");
-
+		dlog d(">>> Evolving environment");
 		/// Increase the age of all networks.
 		for (const auto& net : nets)
 		{
@@ -272,7 +196,7 @@ namespace Cortex
 		calibrate();
 
 		/// Evolve networks in each species.
-		d << "\t`-> Evolving...";
+		d << "\t`-> Evolving networks...";
 		for (const auto& spc : species)
 		{
 			spc->evolve();
@@ -281,7 +205,6 @@ namespace Cortex
 		/// Eliminate unfit networks and empty species.
 		d << "\t`-> Culling...";
 		cull();
-
 	}
 
 	void Env::calibrate()
@@ -320,8 +243,6 @@ namespace Cortex
 				 "\n\t\tAbsolute fitness: ", spc->fitness.abs.value,
 				 "\n\t\tRelative fitness: ", spc->fitness.rel.value);
 		}
-
-		print_stats();
 	}
 
 	void Env::cull()

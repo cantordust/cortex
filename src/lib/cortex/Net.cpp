@@ -61,9 +61,6 @@ namespace Cortex
 			id = 0;
 			return id;
 		}
-
-		/// Add 1 to the global network counter
-		Env::stats[Stat::Nets].add(1);
 		return ++id;
 	}
 
@@ -691,7 +688,6 @@ namespace Cortex
 	void Net::evaluate()
 	{
 		Task::threadpool.enqueue(Task::evaluate<Stage::Train>, std::ref(*this));
-		Env::stats[Stat::Evaluations].add(1);
 	}
 
 	///=====================================
