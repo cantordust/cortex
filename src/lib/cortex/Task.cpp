@@ -85,7 +85,7 @@ namespace Cortex
 	void Task::execute()
 	{
 		static bool called(false);
-		require(!called, "You can only execute a task once.", "\nTry changing the number of runs in the configuration instead.");
+		require(!called, "You can only execute a task once.\nTry changing the number of runs in the configuration instead.");
 		called = true;
 
 		/// Execute the task
@@ -129,11 +129,11 @@ namespace Cortex
 //					/// Evaluate the population
 //					for (const auto& net : Env::nets)
 //					{
-//						Task::threadpool.enqueue(Task::evaluate<Stage::Train>, std::ref(*net));
+//						threadpool.enqueue(Task::evaluate, net);
 //					}
 
 					/// Wait for the threadpool to sync.
-//					Task::threadpool.sync();
+//					threadpool.sync();
 
 //					/// Check if the task has been solved.
 //					if (is_solved())
@@ -152,6 +152,11 @@ namespace Cortex
 					/// Update the history for this run.
 					history.add(Stat::Nets, Env::nets.size());
 					history.add(Stat::Species, Env::species.size());
+
+					/// These are average values over all nets for the current run.
+					history.add(Stat::Layers, Env::count(ElemType::Layer) / flt(Env::nets.size()));
+					history.add(Stat::Nodes, Env::count(ElemType::Node) / flt(Env::nets.size()));
+					history.add(Stat::Links, Env::count(ElemType::Link) / flt(Env::nets.size()));
 				}
 
 				/// Update the history.
@@ -165,7 +170,7 @@ namespace Cortex
 		history.print();
 	}
 
-	bool Task::is_solved(const NetPtr& _net, const bool _reset)
+	bool Task::is_solved(const NetPtr _net, const bool _reset)
 	{
 		/// A switch indicating whether the task has been solved
 		static bool solved(false);

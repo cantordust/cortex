@@ -17,6 +17,9 @@ namespace Cortex
 		/// Age of the network in terms of generations.
 		uint age = 0;
 
+		/// Optimisation stage
+		Stage stage = Stage::Train;
+
 	protected:
 
 		/// Fitness statistics.
@@ -167,9 +170,6 @@ namespace Cortex
 		///=====================================
 		/// Evolution
 		///=====================================
-
-		/// @brief Template for parameter mutations.
-		void train();
 
 		/// @brief Crossover procedure between two parent networks.
 		/// The end result is the creation of a new phenotype

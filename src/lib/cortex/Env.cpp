@@ -165,6 +165,30 @@ namespace Cortex
 		return (it.second) ? it.first->get() : nullptr;
 	}
 
+	uint Env::count(const ElemType _et)
+	{
+		return Cortex::count(nets, [&](const uint _sum, const NetPtr& _net)
+		{
+			return _sum + _net->count(_et);
+		});
+	}
+
+	uint Env::count(const LayerType _lt)
+	{
+		return Cortex::count(nets, [&](const uint _sum, const NetPtr& _net)
+		{
+			return _sum + _net->count(_lt);
+		});
+	}
+
+	uint Env::count(const LinkType _lt)
+	{
+		return Cortex::count(nets, [&](const uint _sum, const NetPtr& _net)
+		{
+			return _sum + _net->count(_lt);
+		});
+	}
+
 	real Env::get_offset(const ElemType _elem, const uint _count)
 	{
 		SMAStat stat;

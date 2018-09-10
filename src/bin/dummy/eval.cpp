@@ -4,42 +4,47 @@ namespace Dummy
 {
 	bool setup()
 	{
-		//		uint samples(1000);
-		//		for (uint s = 0; s < samples; ++s)
-		//		{
-		//			std::vector<real> input;
-		//			for (uint i = 0; i < _conf.node.roles.at(NR::I); ++i)
-		//			{
-		//				input.emplace_back(_conf.rnd_nd(0.0, 1.0));
-		//			}
-		//			_conf.data->add_sample(input);
-		//		}
-
-		//		conf->validate();
-
-		//		dlog{*conf};
-
+		Fitness::set_target(3.0);
 		return true;
 	}
+
+	template<>
+	void eval<Stage::Train>(const NetPtr _net)
+	{
+		_net->set_fitness(rnd_pos_nd(1.0));
+	}
+
+//	template<>
+//	void eval<Stage::Dev>(const NetPtr _net)
+//	{
+//		_net.set_fitness(rnd_pos_nd(0.5));
+//	}
 }
 
 namespace Cortex
 {
-	template<>
-	real Task::evaluate<Stage::Train>(Net& _net)
+	void Task::evaluate(const NetPtr _net)
 	{
-		dlog("Evaluating network ", _net.id);
+		dlog("Evaluating network ", _net->id);
+
+		switch (_net->stage)
+		{
+		case Stage::Train:
+			Dummy::eval<Stage::Train>(_net);
+			break;
+
+//		case Stage::Dev:
+//			Dummy::eval<Stage::Dev>(_net);
+//			break;
+
+//		case Stage::Test:
+//			Dummy::eval<Stage::Test>(_net);
+//			break;
+
+		default:
+			break;
+		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(rnd_int(50, 100)));
-		//		_net.eval(_net.conf.data->rnd_sample());
-
-		//		auto out(_net.get_output());
-
-		//		real fit(std::accumulate(out.begin(), out.end(), 0.0));
-		real fit(0.0);
-
-		//		dlog("Network ", _net.id, " absolute fitness: ", _net.get_abs_fitness());
-
-		return fit;
 	}
 }

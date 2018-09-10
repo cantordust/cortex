@@ -21,7 +21,7 @@ namespace Cortex
 		require(species, "Net::Net(const Genome& _genome): Invalid species.");
 		species->add(this);
 
-//		dlog("`-> Setting up layers...");
+		//		dlog("`-> Setting up layers...");
 		for (const auto& lconf : _genome.layers)
 		{
 			layers.push_back(mkup<Layer>(*this, lconf));
@@ -29,8 +29,8 @@ namespace Cortex
 
 		connect();
 
-//		dlog("Network ", id, " created successfully.");
-//		dlog(*this);
+		//		dlog("Network ", id, " created successfully.");
+		//		dlog(*this);
 	}
 
 	Net::Net(Net* const _parent1, Net* const _parent2)
@@ -100,7 +100,7 @@ namespace Cortex
 
 	uint Net::count(const ElemType _et) const
 	{
-//		dlog(">>>[Net] Counting elements of type ", _et);
+		//		dlog(">>>[Net] Counting elements of type ", _et);
 
 		switch (_et)
 		{
@@ -109,10 +109,7 @@ namespace Cortex
 
 		case ElemType::Node:
 		case ElemType::Link:
-			return std::accumulate(layers.cbegin(),
-								   layers.cend(),
-								   0,
-								   [&](const uint _sum, const LayerPtr& _layer)
+			return Cortex::count(layers, [&](const uint _sum, const LayerPtr& _layer)
 			{
 				return _sum + _layer->count(_et);
 			});
@@ -124,12 +121,9 @@ namespace Cortex
 
 	uint Net::count(const LayerType _lt) const
 	{
-//		dlog(">>>[Net] Counting layers of type ", _lt);
+		//		dlog(">>>[Net] Counting layers of type ", _lt);
 
-		return std::accumulate(layers.cbegin(),
-							   layers.cend(),
-							   0,
-							   [&](const uint _sum, const LayerPtr& _layer)
+		return Cortex::count(layers, [&](const uint _sum, const LayerPtr& _layer)
 		{
 			return (_lt)  == _layer->lconf.type ? _sum + 1 : _sum;
 		});
@@ -137,12 +131,9 @@ namespace Cortex
 
 	uint Net::count(const LinkType _lt) const
 	{
-//		dlog(">>>[Net] Counting links of type ", _lt);
+		//		dlog(">>>[Net] Counting links of type ", _lt);
 
-		return std::accumulate(layers.cbegin(),
-							   layers.cend(),
-							   0,
-							   [&](const uint _sum, const LayerPtr& _layer)
+		return Cortex::count(layers, [&](const uint _sum, const LayerPtr& _layer)
 		{
 			return _sum + _layer->count(_lt);
 		});
@@ -154,7 +145,7 @@ namespace Cortex
 
 	void Net::connect()
 	{
-//		dlog("Connecting network ", id, "...");
+		//		dlog("Connecting network ", id, "...");
 
 		for (const auto& layer : layers)
 		{
@@ -164,7 +155,7 @@ namespace Cortex
 
 	void Net::disconnect()
 	{
-//		dlog("Disconnecting network ", id, "...");
+		//		dlog("Disconnecting network ", id, "...");
 
 		for (const auto& layer : layers)
 		{
@@ -181,10 +172,31 @@ namespace Cortex
 	{
 		fitness.abs.update(_val);
 
-		if (fitness.abs.value >= Fitness::target)
+		if (_val >= Fitness::target)
 		{
+			switch (stage)
+			{
+			case Stage::Train:
+				stage = Stage::Dev;
+				break;
 
-			Task::is_solved(self());
+			case Stage::Dev:
+				stage = Stage::Test;
+				break;
+
+			case Stage::Test:
+				Task::is_solved(self());
+				break;
+
+			default:
+				break;
+			}
+		}
+
+		/// Check if we should re-evaluate the network.
+		if (rnd_chance(fitness.abs.get_offset()))
+		{
+			Task::threadpool.enqueue(Task::evaluate, self());
 		}
 	}
 
@@ -241,247 +253,241 @@ namespace Cortex
 	/// Evolution
 	///=====================================
 
-//	template<>
-//	bool Net::evolve<Elem::Link>
-//	{
+	//	template<>
+	//	bool Net::evolve<Elem::Link>
+	//	{
 
-//	}
+	//	}
 
-//	template<>
-//	bool Net::evolve<Elem::Layer, Action::Inc>(const opt<uint> _layer)
-//	{
-//		/// Check if the layer is valid
-//		if (!_layer.is_set())
-//		{
-//			return false;
-//		}
+	//	template<>
+	//	bool Net::evolve<Elem::Layer, Action::Inc>(const opt<uint> _layer)
+	//	{
+	//		/// Check if the layer is valid
+	//		if (!_layer.is_set())
+	//		{
+	//			return false;
+	//		}
 
-//		layers.emplace(layers.begin() + _layer(), mkup<Layer>(*this, species->genome.layers[_layer()]));
+	//		layers.emplace(layers.begin() + _layer(), mkup<Layer>(*this, species->genome.layers[_layer()]));
 
-//		return true;
-//	}
+	//		return true;
+	//	}
 
-//	template<>
-//	bool Net::evolve<Elem::Layer, Action::Dec>(const opt<uint> _layer)
-//	{
-//		/// Check if the layer is valid
-//		if (!_layer)
-//		{
-//			return false;
-//		}
+	//	template<>
+	//	bool Net::evolve<Elem::Layer, Action::Dec>(const opt<uint> _layer)
+	//	{
+	//		/// Check if the layer is valid
+	//		if (!_layer)
+	//		{
+	//			return false;
+	//		}
 
-//		/// Erase the layer
-//		layers.erase(layers.begin() + _layer());
+	//		/// Erase the layer
+	//		layers.erase(layers.begin() + _layer());
 
-//		return true;
-//	}
+	//		return true;
+	//	}
 
-//	template<>
-//	bool Net::evolve<Elem::Layer, Action::Undef>(const opt<uint> _layer)
-//	{
-//		/// Choose an element type.
-//		//		NetElem elem(roulette(conf->mutation.elem.types));
-//		Elem elem(Elem::Undef);
+	//	template<>
+	//	bool Net::evolve<Elem::Layer, Action::Undef>(const opt<uint> _layer)
+	//	{
+	//		/// Choose an element type.
+	//		//		NetElem elem(roulette(conf->mutation.elem.types));
+	//		Elem elem(Elem::Undef);
 
-//		/// Determine whether we should add or erase
-//		/// an element of the selected type.
-//		/// @todo Check if elements of that type can be
-//		/// erased and set the action to Action::Inc if not.
-//		///
-//		/// Action::Inc = add element
-//		/// Action::Dec = erase element
-//		Action act(rnd_chance(0.5) ? Action::Inc : Action::Dec);
+	//		/// Determine whether we should add or erase
+	//		/// an element of the selected type.
+	//		/// @todo Check if elements of that type can be
+	//		/// erased and set the action to Action::Inc if not.
+	//		///
+	//		/// Action::Inc = add element
+	//		/// Action::Dec = erase element
+	//		Action act(rnd_chance(0.5) ? Action::Inc : Action::Dec);
 
-//		/// The following procedure promotes diversity
-//		/// while preventing the environment from getting
-//		/// full of bloated individuals.
-//		///
-//		/// High connectivity indicates that the potential
-//		/// for adding new links is low, so we should
-//		/// probably add a new node or layer instead.
-//		if (conf->mutation.adaptive)
-//		{
-//			switch (elem)
-//			{
-//			case Elem::Link:
-//				act = (rnd_chance(get_link_density()) ? Action::Dec : Action::Inc);
-//				break;
+	//		/// The following procedure promotes diversity
+	//		/// while preventing the environment from getting
+	//		/// full of bloated individuals.
+	//		///
+	//		/// High connectivity indicates that the potential
+	//		/// for adding new links is low, so we should
+	//		/// probably add a new node or layer instead.
+	//		if (conf->mutation.adaptive)
+	//		{
+	//			switch (elem)
+	//			{
+	//			case Elem::Link:
+	//				act = (rnd_chance(get_link_density()) ? Action::Dec : Action::Inc);
+	//				break;
 
-//			case Elem::Layer:
-//			case Elem::Node:
-//				act = (rnd_chance(get_link_density()) ? Action::Inc : Action::Dec);
-//				break;
+	//			case Elem::Layer:
+	//			case Elem::Node:
+	//				act = (rnd_chance(get_link_density()) ? Action::Inc : Action::Dec);
+	//				break;
 
-//			default:
-//				break;
-//			}
-//		}
+	//			default:
+	//				break;
+	//			}
+	//		}
 
-//		switch (elem)
-//		{
+	//		switch (elem)
+	//		{
 
-//		case Elem::Layer:
-//			return mutate<Elem::Layer>(act);
+	//		case Elem::Layer:
+	//			return mutate<Elem::Layer>(act);
 
-//		case Elem::Node:
-//			return mutate<Elem::Node>(act);
+	//		case Elem::Node:
+	//			return mutate<Elem::Node>(act);
 
-//		case Elem::Link:
-//			return mutate<Elem::Link>(act);
+	//		case Elem::Link:
+	//			return mutate<Elem::Link>(act);
 
-//		default:
-//			return false;
-//		}
+	//		default:
+	//			return false;
+	//		}
 
-//		/// Get a copy of the genome so we can manipulate it.
-//		auto new_genome(species->genome);
+	//		/// Get a copy of the genome so we can manipulate it.
+	//		auto new_genome(species->genome);
 
-//		if (_act == Action::Inc)
-//		{
-//			if (new_genome.add<Elem::Layer>())
-//			{
-//				auto new_species(Env::get_species(new_genome));
-//				if (new_species)
-//				{
-//					add<Elem::Layer>();
-//					set_species(new_species);
-//				}
-//			}
-//		}
+	//		if (_act == Action::Inc)
+	//		{
+	//			if (new_genome.add<Elem::Layer>())
+	//			{
+	//				auto new_species(Env::get_species(new_genome));
+	//				if (new_species)
+	//				{
+	//					add<Elem::Layer>();
+	//					set_species(new_species);
+	//				}
+	//			}
+	//		}
 
-//		else if (_act == Action::Dec)
-//		{
-//			/// Get a random layer
-//			auto layer(rnd_elem(layers).get());
-
-
-//		}
-//		return true;
-//	}
-
-//	template<>
-//	bool Net::evolve<Elem::Node, Action::Undef>(const opt<uint> _layer)
-//	{
-
-//	}
+	//		else if (_act == Action::Dec)
+	//		{
+	//			/// Get a random layer
+	//			auto layer(rnd_elem(layers).get());
 
 
-//	bool Net::add_link()
-//	{
-//		/// Pick a random layer for the source node
-//		uint max_src_layer(layers.size() - 2);
-//		if (conf->link.type.lateral ||
-//			conf->link.type.recurrent)
-//		{
-//			/// Include the output layer
-//			max_src_layer = layers.size() - 1;
-//		}
+	//		}
+	//		return true;
+	//	}
 
-//		uint src_layer(rnd_int<uint>(0, max_src_layer));
+	//	template<>
+	//	bool Net::evolve<Elem::Node, Action::Undef>(const opt<uint> _layer)
+	//	{
 
-//		/// Pick a random node from that layer
-//		Node* src(rnd_elem(layers[src_layer]->nodes).get());
-
-//		/// Create a range of potential target layers
-//		std::pair<uint, uint> tgt_layer_range(src->id.layer + 1, src->id.layer + 1);
-
-//		/// If lateral links are enabled, extend the range to
-//		/// include the layer of the source node
-//		if (conf->link.type.lateral)
-//		{
-//			tgt_layer_range.first = src->id.layer;
-//		}
-
-//		/// If recurrent links are enabled, extend the range to include
-//		/// all layers before the one of the source node
-//		if (conf->link.type.recurrent)
-//		{
-//			tgt_layer_range.first = 0;
-//		}
-
-//		/// If skip links are enabled, extend the range to include
-//		/// all layers after the one of the source node
-//		if (conf->link.type.skip)
-//		{
-//			tgt_layer_range.second = layers.size() - 1;
-//		}
-
-//		/// Pick a target node
-//		hmap<Node*, real> candidates;
-//		SMAStat stat;
-
-//		///Iterate over layers
-//		for (const auto& layer : layers)
-//		{
-//			/// Iterate over nodes in the layer
-//			for (const auto& node : layer->nodes)
-//			{
-//				/// Check if the node is already a target
-//				if (src->links.find(node.get()) == src->links.end())
-//				{
-//					candidates[node.get()] = node->potential.mean;
-//					stat.update(node->potential.mean);
-//				}
-//			}
-//		}
-
-//		/// Return if there is no suitable target
-//		if (candidates.empty())
-//		{
-//			return false;
-//		}
-
-//		/// Normalise.
-//		for (auto& tgt : candidates)
-//		{
-//			tgt.second = logistic(stat.get_offset(tgt.second));
-//		}
-
-//		/// Nodes with higher mean membrane potential
-//		/// are more likely to be picked
-//		Node* tgt(roulette(candidates));
-
-//		if (tgt->id.layer != src->id.layer + 1)
-//		{
-//			/// This is not a standard forward link to a node
-//			/// in the following layer.
-//			/// Add the source node to the list of visitors
-//			/// in the relevant layer.
-
-//			src->add_link(tgt, layers[tgt->id.layer]->weight_elem(src, tgt));
-//		}
-//		else if (tgt->id.layer == src->id.layer + 1)
-//		{
-
-//		}
-
-//		Node* node(get_rnd_node());
-//		if (node &&
-//			node->mutate(MutType::AddLink))
-//		{
-//			make_layers();
-//			return true;
-//		}
-//		return false;
-//	}
-
-//	bool Net::erase_link()
-//	{
-//		Node* node(get_rnd_node());
-//		if (node &&
-//			node->mutate(MutType::EraseLink))
-//		{
-//			make_layers();
-//			return true;
-//		}
-//		return false;
-//	}
-
-	void Net::train()
-	{
+	//	}
 
 
-	}
+	//	bool Net::add_link()
+	//	{
+	//		/// Pick a random layer for the source node
+	//		uint max_src_layer(layers.size() - 2);
+	//		if (conf->link.type.lateral ||
+	//			conf->link.type.recurrent)
+	//		{
+	//			/// Include the output layer
+	//			max_src_layer = layers.size() - 1;
+	//		}
+
+	//		uint src_layer(rnd_int<uint>(0, max_src_layer));
+
+	//		/// Pick a random node from that layer
+	//		Node* src(rnd_elem(layers[src_layer]->nodes).get());
+
+	//		/// Create a range of potential target layers
+	//		std::pair<uint, uint> tgt_layer_range(src->id.layer + 1, src->id.layer + 1);
+
+	//		/// If lateral links are enabled, extend the range to
+	//		/// include the layer of the source node
+	//		if (conf->link.type.lateral)
+	//		{
+	//			tgt_layer_range.first = src->id.layer;
+	//		}
+
+	//		/// If recurrent links are enabled, extend the range to include
+	//		/// all layers before the one of the source node
+	//		if (conf->link.type.recurrent)
+	//		{
+	//			tgt_layer_range.first = 0;
+	//		}
+
+	//		/// If skip links are enabled, extend the range to include
+	//		/// all layers after the one of the source node
+	//		if (conf->link.type.skip)
+	//		{
+	//			tgt_layer_range.second = layers.size() - 1;
+	//		}
+
+	//		/// Pick a target node
+	//		hmap<Node*, real> candidates;
+	//		SMAStat stat;
+
+	//		///Iterate over layers
+	//		for (const auto& layer : layers)
+	//		{
+	//			/// Iterate over nodes in the layer
+	//			for (const auto& node : layer->nodes)
+	//			{
+	//				/// Check if the node is already a target
+	//				if (src->links.find(node.get()) == src->links.end())
+	//				{
+	//					candidates[node.get()] = node->potential.mean;
+	//					stat.update(node->potential.mean);
+	//				}
+	//			}
+	//		}
+
+	//		/// Return if there is no suitable target
+	//		if (candidates.empty())
+	//		{
+	//			return false;
+	//		}
+
+	//		/// Normalise.
+	//		for (auto& tgt : candidates)
+	//		{
+	//			tgt.second = logistic(stat.get_offset(tgt.second));
+	//		}
+
+	//		/// Nodes with higher mean membrane potential
+	//		/// are more likely to be picked
+	//		Node* tgt(roulette(candidates));
+
+	//		if (tgt->id.layer != src->id.layer + 1)
+	//		{
+	//			/// This is not a standard forward link to a node
+	//			/// in the following layer.
+	//			/// Add the source node to the list of visitors
+	//			/// in the relevant layer.
+
+	//			src->add_link(tgt, layers[tgt->id.layer]->weight_elem(src, tgt));
+	//		}
+	//		else if (tgt->id.layer == src->id.layer + 1)
+	//		{
+
+	//		}
+
+	//		Node* node(get_rnd_node());
+	//		if (node &&
+	//			node->mutate(MutType::AddLink))
+	//		{
+	//			make_layers();
+	//			return true;
+	//		}
+	//		return false;
+	//	}
+
+	//	bool Net::erase_link()
+	//	{
+	//		Node* node(get_rnd_node());
+	//		if (node &&
+	//			node->mutate(MutType::EraseLink))
+	//		{
+	//			make_layers();
+	//			return true;
+	//		}
+	//		return false;
+	//	}
 
 	void Net::crossover(Net* const _parent1, Net* const _parent2)
 	{
@@ -687,7 +693,7 @@ namespace Cortex
 
 	void Net::evaluate()
 	{
-		Task::threadpool.enqueue(Task::evaluate<Stage::Train>, std::ref(*this));
+
 	}
 
 	///=====================================

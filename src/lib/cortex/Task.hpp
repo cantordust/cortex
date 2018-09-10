@@ -76,14 +76,13 @@ namespace Cortex
 		static void make_task();
 
 		/// @brief Mark the task as solved by net @p _net
-		static bool is_solved(const NetPtr& _net = nullptr, const bool _reset = false);
+		static bool is_solved(const NetPtr _net = nullptr, const bool _reset = false);
 
 		///=====================================
 		/// Evaluation functions
 		///=====================================
 
-		template<Stage stage>
-		static real evaluate(Net& _net);
+		static void evaluate(const NetPtr _net);
 
 		friend class Env;
 		friend class Net;

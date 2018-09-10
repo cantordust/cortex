@@ -22,10 +22,7 @@ namespace Cortex
 	template<ElemType et, LayerType lt = LayerType::Undef>
 	uint count(const Genome& _genome, const bool _with_fixed = false)
 	{
-		return std::accumulate(_genome.layers.cbegin(),
-							   _genome.layers.cend(),
-							   0,
-							   [&](const uint _sum, const auto& _layer)
+		return Cortex::count(_genome.layers, [&](const uint _sum, const auto& _layer)
 		{
 			if ((_layer.evolvable ||
 				 _with_fixed)

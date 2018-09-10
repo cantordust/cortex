@@ -108,10 +108,7 @@ namespace Cortex
 			return nodes.size();
 
 		case ElemType::Link:
-			return std::accumulate(nodes.cbegin(),
-								   nodes.cend(),
-								   0,
-								   [&](const uint _sum, const NodePtr& _node)
+			return Cortex::count(nodes, [&](const uint _sum, const NodePtr& _node)
 			{
 				return _sum + _node->count(_et);
 			});
@@ -125,10 +122,7 @@ namespace Cortex
 	{
 //		dlog(">>>[Layer] Counting links of type ", _lt);
 
-		return std::accumulate(nodes.cbegin(),
-							   nodes.cend(),
-							   0,
-							   [&](const uint _sum, const NodePtr& _node)
+		return Cortex::count(nodes, [&](const uint _sum, const NodePtr& _node)
 		{
 			return _sum + _node->count(_lt);
 		});

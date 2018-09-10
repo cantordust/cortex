@@ -81,6 +81,15 @@ namespace Cortex
 		/// @param _p2 Parent 2
 		static Net* const insert_net(Net* const _p1, Net* const _p2);
 
+		/// @brief Count elements of a specific type.
+		static uint count(const ElemType _et = ElemType::Undef);
+
+		/// @brief Count layers of a specific type.
+		static uint count(const LayerType _lt = LayerType::Undef);
+
+		/// @brief Count links of a specific type.
+		static uint count(const LinkType _lt = LinkType::Undef);
+
 		/// @brief Get the offset of the number of elements relative to
 		/// the mean number of elements of that type.
 		static real get_offset(const ElemType _elem, const uint _count);

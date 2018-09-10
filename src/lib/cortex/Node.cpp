@@ -82,10 +82,7 @@ namespace Cortex
 	{
 //		dlog(">>>[Node] Counting links of type ", _lt);
 
-		return std::accumulate(sources.cbegin(),
-							   sources.cend(),
-							   0,
-							   [&](const uint _sum, const auto& _src)
+		return Cortex::count(sources, [&](const uint _sum, const auto& _src)
 		{
 			return (_lt == LinkType::Undef || _src.second.type == _lt) ? _sum + 1
 																	   : _sum;

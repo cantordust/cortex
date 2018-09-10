@@ -101,6 +101,15 @@ namespace Cortex
 		}
 		return _os;
 	}
+
+	template<template<typename...> class Container, typename Lambda, typename ... Ts>
+	inline uint count(const Container<Ts...>& _cont, Lambda&& _lambda)
+	{
+		return std::accumulate(std::cbegin(_cont),
+							   std::cend(_cont),
+							   0,
+							   _lambda);
+	}
 }
 
 #endif // CORTEX_CONTAINER_OPS_HPP
