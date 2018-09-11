@@ -2,19 +2,23 @@
 
 namespace Cortex
 {
-
 	Fitness::Fitness()
 		:
 		  abs(conf->fitness.stat.alpha),
 		  rel(conf->fitness.stat.alpha)
 	{}
 
-	void Fitness::add_param(Parameter& _p)
+	void Fitness::add_parameter(Parameter& _param)
 	{
-		params.push_back(_p);
+		parameters.push_back(_param);
 	}
 
-	void Fitness::optimise(const real _new_value)
+	void Fitness::clear_parameters()
+	{
+		parameters.clear();
+	}
+
+	void Fitness::set(const real _new_value)
 	{
 		if (_new_value > abs.value)
 		{
@@ -30,7 +34,7 @@ namespace Cortex
 		}
 		abs.update(_new_value);
 
-		for (const auto& param : params)
+		for (const auto& param : parameters)
 		{
 			param.get().optimise(effect);
 		}
@@ -38,13 +42,11 @@ namespace Cortex
 		/// Increase the SD if we haven't made any progress
 		if (abs.get_offset() <= 0.5)
 		{
-			for (const auto& param : params)
+			for (const auto& param : parameters)
 			{
 				param.get().mutation.scale_sd(Action::Inc);
 			}
 		}
-
-		params.clear();
 	}
 
 	void Fitness::set_target(const real _target)
@@ -59,4 +61,5 @@ namespace Cortex
 			<< "\n\tTarget: " << _fitness.target;
 		return _os;
 	}
+
 } // namespace Cortex

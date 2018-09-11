@@ -14,7 +14,7 @@ namespace Cortex
 	protected:
 
 		/// @brief Target fitness.
-		static inline real target{0.0};
+		inline static real target{0.0};
 
 		/// Absolute fitness.
 		EMAStatPack abs;
@@ -28,7 +28,7 @@ namespace Cortex
 		EMAStatPack rel;
 
 		/// Parameters being mutated / optimised.
-		std::vector<rw<Parameter>> params;
+		std::vector<rw<Parameter>> parameters;
 
 		/// Effect of the last mutation.
 		Effect effect = Effect::Undef;
@@ -37,10 +37,17 @@ namespace Cortex
 
 		Fitness();
 
-		void add_param(Parameter& _p);
+		/// @brief Add a parameter to the vector of parameters.
+		void add_parameter(Parameter& _param);
 
-		void optimise(const real _new_value);
+		/// @brief Clear the vector of parameters.
+		void clear_parameters();
 
+		/// @brief Optimise the parameters currently stored
+		/// in the vector of parameters.
+		void set(const real _new_value);
+
+		/// @brief Set the target fitness.
 		static void set_target(const real _target);
 
 		/// @brief Output the fitness to a stream.

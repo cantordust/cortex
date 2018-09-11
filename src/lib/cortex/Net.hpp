@@ -14,7 +14,7 @@ namespace Cortex
 		/// This is generated automatically.
 		const uint id;
 
-		/// Age of the network in terms of generations.
+		/// Age of the network in generations.
 		uint age = 0;
 
 		/// Optimisation stage
@@ -171,22 +171,22 @@ namespace Cortex
 		/// Evolution
 		///=====================================
 
-		/// @brief Crossover procedure between two parent networks.
-		/// The end result is the creation of a new phenotype
-		/// (this network) by mixing nodes from the two parents.
-		void crossover(Net* const _parent1, Net* const _parent2);
+		void erase_link();
+
+		/// @brief Parameter mutation.
+		void mutate();
 
 		/// @brief Evolve the network based on its relative fitness.
 		///
-		/// Likely actions during the learning phase:
+		/// Parameter optimisation (learning phase):
 		///
-		///		- High fitness: Parameter mutation
+		///		- High fitness: Mutate existing parameters
 		///
 		///		- Low fitness:
 		///			- Low link density: Add link
 		///			- High link density: Erase link
 		///
-		/// Likely actions during the evolution phase:
+		/// Structural changes evolution phase:
 		///
 		///		- High fitness: Crossover
 		///
@@ -195,11 +195,18 @@ namespace Cortex
 		///			- High genome complexity: Erase nodes
 		void evolve();
 
+		/// @brief Crossover procedure between two parent networks.
+		/// The end result is the creation of a new phenotype
+		/// (this network) by mixing nodes from the two parents.
+		void crossover(Net* const _parent1, Net* const _parent2);
+
 		///=====================================
 		/// Evaluation
 		///=====================================
 
-		void evaluate();
+		/// @brief Evaluate the network.
+		/// @todo Import convolution code.
+		void evaluate(const Sample& _sample);
 
 		///=====================================
 		/// Serialisation and printing
@@ -221,6 +228,7 @@ namespace Cortex
 		friend class Species;
 		friend class RField;
 		template<ElemType> friend class Element;
+
 	};
 }
 

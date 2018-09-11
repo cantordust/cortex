@@ -190,7 +190,29 @@ namespace Cortex
 
 	bool Node::erase_link(Node* const _src)
 	{
-		if (!_src || !is_key(sources, _src) ||
+		/// Check if a source is provided.
+		if (!_src)
+		{
+			/// We need at least one link.
+			if(sources.size() == 1)
+			{
+				return false;
+			}
+
+			/// Links with small weights have a greater
+			/// chance of being removed.
+			wmap<Node*> nodes;
+			for (const auto& src : sources)
+			{
+				nodes[src.first] = src.second.weight.value;
+			}
+			sources.erase(nodes.flip_spin());
+			return true;
+		}
+
+		/// Check if the provided node is indeed
+		/// a source of the current node.
+		if(!is_key(sources, _src) ||
 			sources.size() == 1)
 		{
 			return false;
@@ -232,39 +254,6 @@ namespace Cortex
 	//	{
 	//		tf = rnd_elem(conf->net.node.tf.at(id.type));
 	//		return true;
-	//	}
-
-	//	template<>
-	//	bool Node::mutate<MutType::AddLink>()
-	//	{
-	//		NodePtr other(get_rnd_tgt(id.type));
-	//		if (other &&
-	//			add_link(other))
-	//		{
-	//			return true;
-	//		}
-
-	//		other = get_rnd_src(id.type);
-	//		if (other &&
-	//			other->add_link(self()))
-	//		{
-	//			return true;
-	//		}
-
-	//		return false;
-	//	}
-
-	//	template<>
-	//	bool Node::mutate<MutType::EraseLink>()
-	//	{
-	//		if ((!links.targets.empty() &&
-	//			erase_link(rnd_key(links.targets))) ||
-	//			(!links.sources.empty() &&
-	//			 rnd_key(links.sources)->erase_link(self())))
-	//		{
-	//			return true;
-	//		}
-	//		return false;
 	//	}
 
 	///=====================================

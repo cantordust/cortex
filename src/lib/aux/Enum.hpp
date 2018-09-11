@@ -259,7 +259,7 @@ namespace Cortex
 	/// Parameter types.
 	///=====================================
 
-	ENUM("Parameter type", Param,
+	ENUM("Parameter type", ParamType,
 		 Weight,
 		 TimeConstant
 		 );

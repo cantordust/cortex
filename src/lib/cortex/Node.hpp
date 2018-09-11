@@ -109,7 +109,7 @@ namespace Cortex
 		///=====================================
 
 		/// @brief Add a new link of type @p _lt
-		bool add_link(Node* const _src, const LinkType _lt);
+		bool add_link(Node* const _src, const LinkType _lt = LinkType::Undef);
 
 		/// @brief Replicate a reference link.
 		bool add_link(Node* const _src, const Link& _other);
@@ -117,7 +117,7 @@ namespace Cortex
 		/// @brief Erase a link to source @p _src.
 		/// This automatically removes the link from
 		/// the target's link tables as well.
-		bool erase_link(Node* const _src);
+		bool erase_link(Node* const _src = nullptr);
 
 		///=====================================
 		/// Serialisation and printing

@@ -1,11 +1,27 @@
-#include "Net.hpp"
 #include "Evaluator.hpp"
+#include "Net.hpp"
+#include "Layer.hpp"
+#include "Node.hpp"
+#include "Link.hpp"
 
 namespace Cortex
 {
 	void Evaluator::compile(const Net& _net)
 	{
+		for (const auto& layer : _net.layers)
+		{
+			switch(layer->lconf.type)
+			{
+			case LayerType::Convolutional:
+				break;
 
+			case LayerType::Regular:
+				break;
+
+			default:
+				break;
+			}
+		}
 	}
 
 	//	Mat Layer::eval()

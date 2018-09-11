@@ -8,7 +8,7 @@ namespace Cortex
 	class Evaluator
 	{
 
-	private:
+	protected:
 
 		/// Input matrix
 		Mat input;
@@ -21,52 +21,46 @@ namespace Cortex
 		Mat output;
 
 		/// Gradient matrix.
-		Mat grad;
-
-		/// Evaluation scheduler (for spiking networks only).
-		Spike::Scheduler scheduler;
+		Mat gradient;
 
 		/// Receptive field.
 		RField rfield;
 
+		/// Evaluation scheduler (for spiking networks only).
+		Spike::Scheduler scheduler;
+
 	public:
 
+		///=====================================
+		/// Structural operations
+		///=====================================
+
+		/// @brief Compile the evaluator from a network description.
 		void compile(const Net& _net);
 
 		///=====================================
 		/// Evaluation
 		///=====================================
 
-		template<NetType nt = NetType::Undef>
-		void eval();
+		/// @brief Dispatch function for network evaluation.
+		/// For spiking networks, the input represents spike times
+		/// in the case of direct encoding or relative order in case
+		/// of rank order encoding.
+		void evaluate(const Sample& _sample);
 
-		template<SpikeEnc enc = SpikeEnc::Undef>
-		void eval(const Link& _link);
+		/// @brief Evaluate	a single node.
+		/// Used for evaluating spiking networks.
+		void evaluate(const Node& _node);
 
 		/// @brief Extract the output of the network.
 		/// @return A real-valued vector.
 		Mat get_output();
 
-		/// @brief Dispatch function for network evaluation.
-		/// For spiking networks, the input represents spike times
-		/// in the case of direct encoding or relative order in case
-		/// of rank order encoding.
-		void eval(const Sample& _sample);
-
 		///=====================================
-		/// Evaluation
+		/// Friends
 		///=====================================
 
-		template<NetType nt = NetType::Undef>
-		void eval(const Mat& _sample);
-
-		template<SpikeEnc enc = SpikeEnc::Undef>
-		void eval();
-
-		template<RFType rf = RFType::Undef>
-		void convert(const Mat& _input);
-
-		Mat eval();
+		friend class Net;
 	};
 }
 
