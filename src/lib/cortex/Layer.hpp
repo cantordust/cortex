@@ -20,8 +20,12 @@ namespace Cortex
 		/// Layer configuration.
 		LayerConf lconf;
 
-		/// Nodes belonging to this layer
+		/// Nodes belonging to this layer.
 		std::vector<NodePtr> nodes;
+
+		/// Output nodes.
+		/// Only used in convolutional layers.
+		std::vector<NodePtr> output;
 
 	public:
 
@@ -35,10 +39,12 @@ namespace Cortex
 		/// Connections
 		///=====================================
 
-		/// @brief Populate the layer with nodes.
+		/// @brief Populate the layer with nodes, optionally
+		/// using reference nodes from another layer.
 		void init(const std::vector<Node*>& _ref_nodes = {});
 
-		/// Connect all nodes in the layer.
+		/// @brief Connect nodes in the layer, optinally
+		/// using reference nodes from another layer.
 		void connect(const std::vector<Node*>& _ref_nodes = {});
 
 		/// @brief Disconnect all nodes in this layer.
@@ -76,6 +82,9 @@ namespace Cortex
 
 		/// @brief Count links of a specific type
 		uint count(const LinkType _lt = LinkType::Undef) const;
+
+		/// @brief Output size of this layer.
+		Coordinates size() const;
 
 		///=====================================
 		/// Evolution

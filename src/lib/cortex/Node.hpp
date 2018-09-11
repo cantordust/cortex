@@ -16,6 +16,8 @@ namespace Cortex
 
 	protected:
 
+		Coordinates coordinates;
+
 		/// Layer that this node belongs to.
 		Layer& layer;
 
@@ -84,6 +86,8 @@ namespace Cortex
 		/// @brief Last node.
 		Node* const back() const;
 
+		const Coordinates& get_coordinates() const;
+
 		///=====================================
 		/// Counters
 		///=====================================
@@ -135,6 +139,7 @@ namespace Cortex
 		friend class Evaluator;
 		friend class RField;
 		template<ElemType> friend class Element;
+		friend bool operator < (const Spike& _lhs, const Spike& _rhs) noexcept;
 	};
 }
 

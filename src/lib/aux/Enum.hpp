@@ -339,7 +339,10 @@ namespace Cortex
 
 	ENUM("Layer type", LayerType,
 		 Regular,
-		 Convolutional
+		 Convolutional,
+		 Pooling,
+		 Softmax,
+		 Loss
 		 );
 
 	///=====================================
@@ -375,6 +378,16 @@ namespace Cortex
 	ENUM("Moving average type", MAType,
 		 Exponential,
 		 Simple
+		 );
+
+	///=====================================
+	/// Generic dimension labels.
+	///=====================================
+
+	ENUM("Dimension", Dim,
+		 Depth,
+		 Height,
+		 Width
 		 );
 
 	///=====================================

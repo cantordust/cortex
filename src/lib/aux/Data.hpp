@@ -89,8 +89,6 @@ namespace Cortex
 
 		std::string get_label(const uint _idx);
 
-		Mat stretch(const Mat& _image, const uint _max_fs);
-
 		void shuffle();
 	};
 

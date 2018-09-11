@@ -5,18 +5,13 @@
 
 namespace Cortex
 {
-	class GRF
+	/// @class Gaussian receptive fields for a single variable.
+	struct GRF
 	{
-	private:
-
 		Vec mu;
 		real denom; /// = 2 * sigma^2
 
-	public:
-
-		GRF() {}
-
-		GRF(const real _mu,
+		GRF(const Vec& _mu,
 			const real _denom)
 			:
 			  mu(_mu),

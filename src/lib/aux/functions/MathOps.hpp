@@ -12,7 +12,7 @@ namespace Cortex
 
 	namespace Const
 	{
-		/// @todo Other constants
+		/// @todo Other constants?
 		inline const real phi((1.0 + std::sqrt(5.0)) / 2.0);
 		inline const real pi(M_PI);
 		inline const real two_pi(2.0 * M_PI);

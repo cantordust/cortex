@@ -6,87 +6,111 @@
 
 namespace Cortex
 {
+	///=============================================================================
+	/// Custom comparator for spike events
+	///=============================================================================
+	bool operator < (const Spike& _lhs, const Spike& _rhs) noexcept
+	{
+		return _lhs.node->last.out > _rhs.node->last.out;
+	}
+
+	///=============================================================================
+	///	Vectorised layer
+	///=============================================================================
+
+	///=====================================
+	/// Constructor and destructor
+	///=====================================
+
+	Evaluator::Layer::Layer(const uint _nodes)
+	{
+		output = Mat(_nodes + 1 /* bias */, 1, arma::fill::zeros);
+		output.col(0).fill(1.0);
+	}
+
+	///=============================================================================
+	///	Evaluator
+	///=============================================================================
+
+	///=====================================
+	/// Constructor and destructor
+	///=====================================
+
+	Evaluator::Evaluator()
+		:
+		  rfield(*this)
+	{}
+
+	///=====================================
+	///	Structural operations
+	///=====================================
 	void Evaluator::compile(const Net& _net)
 	{
-		for (const auto& layer : _net.layers)
+		layers.clear();
+		for (uint l = 0; l < _net.layers.size(); ++l)
 		{
-			switch(layer->lconf.type)
+			layers.emplace_back(_net.layers[l]->lconf.nodes);
+			if (l > 0)
 			{
-			case LayerType::Convolutional:
-				break;
-
-			case LayerType::Regular:
-				break;
-
-			default:
-				break;
+				/// @todo Populate weights
+				layers.back().weights = Mat(layers.back().output.n_rows, layers[layers.size() - 2].output.n_rows, arma::fill::zeros);
 			}
 		}
 	}
-
-	//	Mat Layer::eval()
-	//	{
-	//		/// Get values from visitors via
-	//		/// recurrent, skip or lateral links.
-	//		/// This is only effective for non-convolutional layers.
-	//		uint elem(nodes.size());
-	//		for (const auto& visitor : visitors)
-	//		{
-	//			input.at(elem++) = visitor->potential.value;
-	//		}
-
-	//		output = weights * input;
-	//		output.each_row() += bias;
-	//		return transfer[lconf.func](output);
-	//	}
-
-	/// @brief Integrate and transfer.
-	/// This version uses direct spike times.
-//	template<>
-//	void Node::transfer<SpikeEnc::Time>()
-//	{
-//		/// Check if the firing threshold has been reached.
-//		if (potential.value >= 1.0)
-//		{
-//			/// Get a random delay from a normal distribution
-//			real delay(rnd_pos_nd(conf->net.spike.max.delay));
-
-//			/// Update the spiking statistics.
-//			/// The statistics represent frequency (= 1 / time)
-//			potential.update(1.0 / (last.in + delay - last.out));
-
-//			/// Update the last spike time
-//			last.out = last.in + delay;
-
-//			/// Schedule a spike from this node
-//			layer.net.scheduler.emplace(this, last.out);
-
-//			/// STDP
-//			if (conf->learning.mode == LearningMode::STDP)
-//			{
-//				/// Apply LTP to all links from source nodes
-//				for (auto& src : sources)
-//				{
-//					/// Both excitatory and inhibitory links are potentiated
-//					src.second.ltp((conf->learning.stdp.rate * std::exp( - (last.out - src.first->last.out) / tau.value )));
-//				}
-//			}
-
-//			/// Reset the membrane potential to 0.
-//			/// There is no refractory period.
-//			potential.update(0.0);
-//		}
-//	}
-
 
 	///=====================================
 	/// Transfer
 	///=====================================
 
-	/// @brief Transfer function for spiking networks.
-//	template<SpikeEnc _enc = SpikeEnc::Time>
-//	void transfer();
+	/// Integrate and transfer routine for spiking networks.
+	/// This version uses direct spike times.
+	void Evaluator::evaluate(const Spike& _spike)
+	{
+		Node& src(*(_spike.node));
+		for (const auto& tgt : _spike.node->targets)
+		{
+			/// Update the membrane potential.
+			/// This can be done as a single calculation by
+			/// computing the repolarisation due to leakm
+			/// current and then adding the contribution
+			/// of the current spike, which amounts to the
+			/// weight of the corresponding synapse.
+			tgt->potential.update(tgt->potential.value * std::exp((tgt->last.in - src.last.out) / tgt->tau.value) +
+								  tgt->sources.at(_spike.node).weight.value);
 
+			/// Update the timing of the last input.
+			tgt->last.in = src.last.out;
+
+			/// Check if the firing threshold has been reached.
+			///
+			/// @todo Replace 1.0 with a dynamic threshold.
+			/// (Cf. https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003560)
+			if (tgt->potential.value >= 1.0)
+			{
+				/// Get a random spike delay and update the
+				/// last spike time for the target node.
+				tgt->last.out = src.last.out + rnd_real(0.0, conf->net.spike.max.delay);
+
+				/// Schedule a spike from the target node.
+				scheduler.emplace(tgt);
+
+				/// STDP
+				if (conf->learning.mode == LearningMode::STDP)
+				{
+					/// Apply LTP to all links from source nodes
+					for (auto& src : tgt->sources)
+					{
+						/// Both excitatory and inhibitory links are potentiated
+						src.second.ltp((conf->learning.stdp.rate * std::exp( - (tgt->last.out - src.first->last.out) / tgt->tau.value )));
+					}
+				}
+
+				/// Reset the membrane potential to 0.
+				/// There is no refractory period.
+				tgt->potential.update(0.0);
+			}
+		}
+	}
 
 	///=====================================
 	/// Node
@@ -165,30 +189,6 @@ namespace Cortex
 //	}
 
 //	template<>
-//	void Net::eval<NetType::Classical>(const Mat& _input)
-//	{
-//		/// Convert the input into the appropriate format
-//		if (layers.front()->type == LayerType::Convolutional)
-//		{
-//			convert<RFType::Convolutional>(_input);
-//		}
-
-//		for (const auto& layer : layers)
-//		{
-//			if (layer->type == LayerType::Convolutional)
-//			{
-
-//			}
-//		}
-
-////		/// Evaluate the nodes in order
-////		for (const auto& node : graph)
-////		{
-////			node->eval<NT::Classical>();
-////		}
-//	}
-
-//	template<>
 //	void Net::eval<SpikeEnc::Time>()
 //	{
 //		while (!scheduler.empty())
@@ -253,11 +253,10 @@ namespace Cortex
 //		}
 //	}
 
-//	template<>
-//	void Net::eval<NetType::Undef>(const Sample& _sample)
-//	{
-//		/// Present the sample to the network
-//		convert(_sample);
+	void Evaluator::evaluate(const Sample& _sample)
+	{
+		/// Convert the sample and present it to the network
+		rfield.convert(_sample);
 
 //		switch (conf->net.type)
 //		{
@@ -269,8 +268,7 @@ namespace Cortex
 
 //		default:
 //			die("Invalid network type ", conf->net.type);
-//		}
-//	}
-
+		//		}
+	}
 
 }

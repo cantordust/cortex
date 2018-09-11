@@ -79,21 +79,18 @@ namespace Cortex
 	using NetPtr = sp<Net>;
 
 	///=====================================
-	/// Lambda function aliases
+	///	@struct Dimension information.
 	///=====================================
-
-	/// Network evaluation function
-	using EvalFunction = std::function<real(Net&)>;
+	using Coordinates = hmap<Dim, uint>;
 
 	///=============================================================================
-	///	Helper structs and classes
+	///	Helper classes.
 	///=============================================================================
 
 	///=====================================
-	/// Optional class.
-	///	For now, this is limited to numeric types.
+	/// @class Optional class.
+	/// For now, this is limited to numeric types.
 	///=====================================
-
 	inline struct nopt_t : std::false_type {} nopt;
 
 	template<typename Num, OnlyNum<Num>...>
@@ -196,11 +193,9 @@ namespace Cortex
 	}
 
 	///=====================================
-	/// A container for elements and
-	/// their corresponding weights.
+	///	@struct A container for elements and their corresponding weights.
 	/// Used in roulette wheel selection.
 	///=====================================
-
 	template<typename T, Func f = Func::Logistic>
 	struct wmap
 	{
@@ -357,9 +352,8 @@ namespace Cortex
 	}
 
 	///=====================================
-	/// Struct representing a mutation
+	///	@struct A mutation event.
 	///=====================================
-
 	struct Mutation
 	{
 		ElemType element{ElemType::Undef};
@@ -389,34 +383,27 @@ namespace Cortex
 	};
 
 	///=====================================
-	/// Struct representing a spike event
+	///	@struct A spike event.
 	///=====================================
-
 	struct Spike
 	{
 		/// Alias for a queue of spike events
 		using Scheduler = std::priority_queue<Spike, std::vector<Spike>>;
 
 		Node* node{nullptr};
-		real time{0.0};
 
-		Spike(Node* _node, const real _time)
+		Spike(Node* _node)
 			:
-			  node(_node),
-			  time(_time)
+			  node(_node)
 		{}
 
-		friend bool operator < (const Spike& _lhs, const Spike& _rhs) noexcept
-		{
-			return _lhs.time > _rhs.time;
-		}
+		friend bool operator < (const Spike& _lhs, const Spike& _rhs) noexcept;
 	};
 
 	///=====================================
-	/// Struct representing a node ID
-	/// (layer index + node index)
+	/// @struct Node ID
+	/// (layer index + node index).
 	///=====================================
-
 	struct NodeID
 	{
 		opt<uint> layer{nopt};
@@ -446,8 +433,8 @@ namespace Cortex
 	};
 
 	///=====================================
-	/// @class Class holding a record of
-	/// stats for a number of runs.
+	/// @class Archive of values and
+	/// statistics for a number of runs.
 	///=====================================
 	class History
 	{
@@ -525,7 +512,7 @@ namespace Cortex
 			return runs;
 		}
 
-		/// @todo Tabulate statistics.
+		/// @brief Tabulate statistics.
 		void print()
 		{
 			/// Stats report
@@ -592,8 +579,6 @@ namespace Cortex
 	/// All exceptions should be funnelled through this function.
 	inline void pitch(const Error _error, std::string&& _msg)
 	{
-
-
 		/// Destroy static variables
 		destroy();
 	}

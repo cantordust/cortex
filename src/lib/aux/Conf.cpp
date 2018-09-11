@@ -5,6 +5,118 @@
 
 namespace Cortex
 {
+	///=============================================================================
+	///	Parameter configuration
+	///=============================================================================
+
+	real ParamConf::initialise()
+	{
+		real value(init.value);
+		switch (init.dist)
+		{
+		case Dist::Normal:
+			value = rnd_nd(init.value, init.sd);
+			break;
+
+		case Dist::Uniform:
+			value = rnd_real(lbound, ubound);
+			break;
+
+		case Dist::PosNormal:
+			value = rnd_pos_nd(init.sd);
+			break;
+
+		case Dist::NegNormal:
+			value = rnd_neg_nd(init.sd);
+			break;
+
+		default:
+			break;
+		}
+
+		/// Check bounds
+		if (value < lbound ||
+			value > ubound)
+		{
+			value = rnd_real(lbound, ubound);
+		}
+
+		return value;
+	}
+
+	void ParamConf::load(json& _j)
+	{
+		JLOAD(_j, init.dist);
+		JLOAD(_j, init.value);
+		JLOAD(_j, init.sd);
+		JLOAD(_j, mutation.sd);
+		JLOAD(_j, lbound);
+		JLOAD(_j, ubound);
+	}
+
+	void ParamConf::save(json& _j) const
+	{
+		JSAVE(_j, init.dist);
+		JSAVE(_j, init.value);
+		JSAVE(_j, init.sd);
+		JSAVE(_j, mutation.sd);
+		JSAVE(_j, lbound);
+		JSAVE(_j, ubound);
+	}
+
+	void from_json(const json& _j, ParamConf& _conf)
+	{
+		_conf.load(const_cast<json&>(_j));
+	}
+
+	void to_json(json& _j, const ParamConf& _conf)
+	{
+		_conf.save(_j);
+	}
+
+	///=============================================================================
+	///	Layer configuration
+	///=============================================================================
+
+	void LayerConf::load(json& _j)
+	{
+		JLOAD(_j, evolvable);
+		JLOAD(_j, type);
+		JLOAD(_j, nodes);
+	}
+
+	void LayerConf::save(json& _j) const
+	{
+		JSAVE(_j, evolvable);
+		JSAVE(_j, type);
+		JSAVE(_j, nodes);
+	}
+
+	bool operator == (const LayerConf& _lhs, const LayerConf& _rhs)
+	{
+		return (_lhs.type == _rhs.type &&
+				_lhs.nodes == _rhs.nodes);
+	}
+
+	bool operator != (const LayerConf& _lhs, const LayerConf& _rhs)
+	{
+		return !(_lhs == _rhs);
+	}
+
+	void from_json(const json& _j, LayerConf& _conf)
+	{
+		_conf.load(const_cast<json&>(_j));
+	}
+
+	void to_json(json& _j, const LayerConf& _conf)
+	{
+		_conf.save(_j);
+	}
+
+	///=============================================================================
+	///	Main configuration
+	///=============================================================================
+
 	void Conf::load()
 	{
 		dlog("Loading configuration...");
@@ -316,6 +428,20 @@ namespace Cortex
 		}
 	}
 
+	void Conf::init()
+	{
+		/// Initialise the transfer functions
+		/// and their derivatives.
+		Transfer::init();
+
+		if (data.type == DataType::Image)
+		{
+			/// Compute the order of image element access
+			/// according to the data.image.order parameter
+			data.image.compute_steps();
+		}
+	}
+
 	///=============================================================================
 	///	Configuration printing
 	///=============================================================================
@@ -549,13 +675,64 @@ namespace Cortex
 		return _os << "\n";
 	}
 
+	///=============================================================================
+	///	Subconfiguration methods
+	///=============================================================================
+
+	void Conf::Data::Image::compute_steps()
+	{
+		switch (order)
+		{
+		case DimOrder::DHW:
+			steps.depth = 1;
+			steps.height = depth;
+			steps.width = height * depth;
+			break;
+
+		case DimOrder::DWH:
+			steps.depth = 1;
+			steps.height = width * depth;
+			steps.width = depth;
+			break;
+
+		case DimOrder::HDW:
+			steps.depth = height;
+			steps.height = 1;
+			steps.width = height * depth;
+			break;
+
+		case DimOrder::HWD:
+			steps.depth = height * width;
+			steps.height = 1;
+			steps.width = height;
+			break;
+
+		case DimOrder::WDH:
+			steps.depth = width;
+			steps.height = width * depth;
+			steps.width = 1;
+			break;
+
+		case DimOrder::WHD:
+			steps.depth = height * width;
+			steps.height = width;
+			steps.width = 1;
+			break;
+
+		default:
+			die("Invalid input order ", order);
+		}
+	}
+
 	uint Conf::Data::Image::conv_layer_limit()
 	{
-		/// Each convolutional layer applies pooling,
+		/// Each convolutional layer applies 2 x 2 pooling,
 		///	so the size of the response layer after
 		/// pooling is half of the input.
 		/// We can easily compute the maximal number
 		/// of convolutional layers in this setup.
+		///
+		/// @todo: Should this take the maximum instead of the minimum?
 		return std::min(std::floor(std::log2(height)), std::floor(std::log2(width)));
 	}
 }

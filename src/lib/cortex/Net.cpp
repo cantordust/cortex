@@ -361,8 +361,6 @@ namespace Cortex
 	void Net::erase_link()
 	{
 		/// Weighted distribution of nodes to choose from.
-		/// All source links of the selected node are added
-		/// to the fitness optimiser.
 		wmap<Node*> nodes;
 
 		/// Populate the roulette wheel.

@@ -1,18 +1,20 @@
 #ifndef CORTEX_TYPES_HPP
 #define CORTEX_TYPES_HPP
 
-/// @todo Make this optional or bundle Armadillo code.
+/// @todo Update cxxopts to the latest version.
 #include "cxxopts.hpp"
 #include "json.hpp"
+
+/// @todo Make this optional or bundle Armadillo code.
 #include "armadillo"
 
 /// @todo Update threadpool to the latest version.
-/// @todo Update cxxopts to the latest version.
-/// @todo Update dlog with printing functions
-/// currently defined in Globals.hpp
-/// @todo Automatic update.
 #include "threadpool.hpp"
+
+/// @todo Update dlog to the latest version.
 #include "dlog.hpp"
+
+/// @todo Automatic update of dependencies
 
 #include <iostream>
 #include <sstream>

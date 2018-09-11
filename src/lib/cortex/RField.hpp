@@ -8,25 +8,32 @@
 namespace Cortex
 {
 	/// @class RField (receptive field) class.
-	/// Receives input and optionally passes it through
-	/// a conversion or preprocessing function.
+	/// Receives input samples and optionally
+	/// applies a conversion or preprocessing function.
 	class RField
 	{
 	private:
 
-		/// Receptive field type.
-		RFType rf;
+		/// The evaluator for this receptive field
+		Evaluator& evaluator;
 
 		/// GRF
-		GRF grf;
+		std::vector<GRF> grf;
+
+		/// @todo ARF
+		/// @todo Spatiotemporal
 
 	public:
 
+		RField(Evaluator& _evaluator);
+
 		template<RFType rf = RFType::Undef>
-		void init();
+		void init() {};
 
 		template<RFType rf = RFType::Undef>
 		void convert(const Sample& _sample) const;
+
+		Mat stretch(const Mat& _image, const uint _max_fs);
 
 		void clear();
 	};

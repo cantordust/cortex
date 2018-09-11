@@ -6,17 +6,34 @@
 
 namespace Cortex
 {
+	RField::RField(Evaluator& _evaluator)
+		:
+		  evaluator(_evaluator)
+	{}
+
 	template<>
 	void RField::init<RFType::Gaussian>()
 	{
-//		real mu(0.0);
-//		real denom(1.0 / (conf->net.rf.gaussian.width * (conf->net.rf.gaussian.nodes - 2.0)));
+		Vec mu(conf->net.rf.gaussian.nodes, arma::fill::zeros);
+		real denom(1.0 / (conf->net.rf.gaussian.width * (conf->net.rf.gaussian.nodes - 2.0)));
 
-//		for (uint rc = 0; rc < conf->net.rf.gaussian.nodes; ++rc)
-//		{
-//			mu = 0.5 * (2.0 * rc - 3.0) / conf->net.rf.gaussian.nodes;
-////			grf.emplace_back(mu, denom);
-//		}
+		/// Generate an array of Gaussians for each input variable
+		for (uint var = 0; var < conf->net.init.layers.front().nodes; ++var)
+		{
+			grf.emplace_back(mu, denom);
+		}
+	}
+
+	template<>
+	void RField::init<RFType::Direct>()
+	{
+
+	}
+
+	template<>
+	void RField::init<RFType::Adaptive>()
+	{
+
 	}
 
 	template<>
@@ -24,11 +41,11 @@ namespace Cortex
 	{
 //		real delay(0.0);
 
-//		for (uint var = 0; var < net.layers.front()->nodes.size(); ++var)
+//		for (uint var = 0; var < conf->net.init.layers.front().nodes; ++var)
 //		{
 //			for (uint r = 0; r < nodes[var].size(); ++r)
 //			{
-//				delay = grf[r].convert(_input[var].front());
+//				delay = grf[r].convert(_sample[var].front());
 //				if (delay < conf->net.rf.grf.cutoff)
 //				{
 //					nodes[var][r]->schedule(delay);
@@ -65,9 +82,9 @@ namespace Cortex
 	/// Dispatch functions
 	///=====================================
 
-	template<>
-	void RField::init()
-	{
+//	template<>
+//	void RField::init()
+//	{
 //		/// Add nodes
 //		uint idx(0);
 //		for (uint var = 0; var < net.get_node_count(NodeType::Input); ++var)
@@ -87,7 +104,7 @@ namespace Cortex
 //		default:
 //			break;
 //		}
-	}
+//	}
 
 //	template<>
 //	void RField::convert<NetType::Spiking>(const Sample& _sample) const

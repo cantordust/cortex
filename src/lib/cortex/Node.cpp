@@ -60,6 +60,11 @@ namespace Cortex
 		return layer.nodes.back().get();
 	}
 
+	const Coordinates& Node::get_coordinates() const
+	{
+		return coordinates;
+	}
+
 	///=====================================
 	/// Counters
 	///=====================================

@@ -50,71 +50,16 @@ namespace Cortex
 		real lbound{min<real>};
 		real ubound{max<real>};
 
-		real initialise()
-		{
-			real value(init.value);
-			switch (init.dist)
-			{
-			case Dist::Normal:
-				value = rnd_nd(init.value, init.sd);
-				break;
+		real initialise();
 
-			case Dist::Uniform:
-				value = rnd_real(lbound, ubound);
-				break;
+		void load(json& _j);
 
-			case Dist::PosNormal:
-				value = rnd_pos_nd(init.sd);
-				break;
-
-			case Dist::NegNormal:
-				value = rnd_neg_nd(init.sd);
-				break;
-
-			default:
-				break;
-			}
-
-			/// Check bounds
-			if (value < lbound ||
-				value > ubound)
-			{
-				value = rnd_real(lbound, ubound);
-			}
-
-			return value;
-		}
-
-		void load(json& _j)
-		{
-			JLOAD(_j, init.dist);
-			JLOAD(_j, init.value);
-			JLOAD(_j, init.sd);
-			JLOAD(_j, mutation.sd);
-			JLOAD(_j, lbound);
-			JLOAD(_j, ubound);
-		}
-
-		void save(json& _j) const
-		{
-			JSAVE(_j, init.dist);
-			JSAVE(_j, init.value);
-			JSAVE(_j, init.sd);
-			JSAVE(_j, mutation.sd);
-			JSAVE(_j, lbound);
-			JSAVE(_j, ubound);
-		}
+		void save(json& _j) const;
 	};
 
-	inline void from_json(const json& _j, ParamConf& _conf)
-	{
-		_conf.load(const_cast<json&>(_j));
-	}
+	inline void from_json(const json& _j, ParamConf& _conf);
 
-	inline void to_json(json& _j, const ParamConf& _conf)
-	{
-		_conf.save(_j);
-	}
+	inline void to_json(json& _j, const ParamConf& _conf);
 
 	///=====================================
 	/// Layer configuration
@@ -133,49 +78,20 @@ namespace Cortex
 		/// Number of nodes in the layer.
 		uint nodes = 0;
 
-		void load(json& _j)
-		{
-//			/// Add an entry to the vector of layers.
-//			_j.emplace_back(json::object());
+		void load(json& _j);
 
-//			/// Get a reference to the entry
-//			json& j(_j.back());
+		void save(json& _j)	const;
 
-			JLOAD(_j, evolvable);
-			JLOAD(_j, type);
-			JLOAD(_j, nodes);
-		}
+		friend bool operator == (const LayerConf& _lhs, const LayerConf& _rhs);
 
-		void save(json& _j)	const
-		{
-			JSAVE(_j, evolvable);
-			JSAVE(_j, type);
-			JSAVE(_j, nodes);
-		}
-
-		friend bool operator == (const LayerConf& _lhs, const LayerConf& _rhs)
-		{
-			return (_lhs.type == _rhs.type &&
-					_lhs.nodes == _rhs.nodes);
-		}
-
-		friend bool operator != (const LayerConf& _lhs, const LayerConf& _rhs)
-		{
-			return !(_lhs == _rhs);
-		}
+		friend bool operator != (const LayerConf& _lhs, const LayerConf& _rhs);
 
 		friend os& operator << (os& _os, const LayerConf& _lc);
 	};
 
-	inline void from_json(const json& _j, LayerConf& _conf)
-	{
-		_conf.load(const_cast<json&>(_j));
-	}
+	inline void from_json(const json& _j, LayerConf& _conf);
 
-	inline void to_json(json& _j, const LayerConf& _conf)
-	{
-		_conf.save(_j);
-	}
+	inline void to_json(json& _j, const LayerConf& _conf);
 
 	///=============================================================================
 	///	Main configuration
@@ -376,6 +292,7 @@ namespace Cortex
 			uint runs = 1;
 
 			/// Maximal number of generations.
+			///
 			/// @todo Indefinite evolution.
 			uint generations = 100;
 
@@ -397,7 +314,7 @@ namespace Cortex
 				/// Indicates the order of dimensions
 				/// in the input image vector
 				/// E.g., DHW = Depth, Height, Width.
-				DimOrder order;
+				DimOrder order = DimOrder::DHW;
 
 				/// Input depth (# of channels)
 				uint depth = 0;
@@ -423,50 +340,7 @@ namespace Cortex
 					uint width = 0;
 				} steps;
 
-				void compute_steps()
-				{
-					switch (order)
-					{
-					case DimOrder::HDW:
-						steps.height = 1;
-						steps.width = height * depth;
-						steps.depth = height;
-						break;
-
-					case DimOrder::HWD:
-						steps.height = 1;
-						steps.width = height;
-						steps.depth = height * width;
-						break;
-
-					case DimOrder::DHW:
-						steps.height = depth;
-						steps.width = height * depth;
-						steps.depth = 1;
-						break;
-
-					case DimOrder::WHD:
-						steps.height = width;
-						steps.width = 1;
-						steps.depth = height * width;
-						break;
-
-					case DimOrder::DWH:
-						steps.height = width * depth;
-						steps.width = depth;
-						steps.depth = 1;
-						break;
-
-					case DimOrder::WDH:
-						steps.height = width * depth;
-						steps.width = 1;
-						steps.depth = width;
-						break;
-
-					default:
-						die("Invalid input order ", order);
-					}
-				}
+				void compute_steps();
 
 				uint conv_layer_limit();
 
@@ -532,23 +406,11 @@ namespace Cortex
 		/// @brief Save the current configuration.
 		void save();
 
-		/// @brief Check all the loaded parameters
+		/// @brief Check all the loaded parameters.
 		void check();
 
-		/// @brief Initialise transfer and backprop functions
-		void init()
-		{
-			/// Initialise the transfer functions
-			/// and their derivatives.
-			Transfer::init();
-
-			if (data.type == DataType::Image)
-			{
-				/// Compute the order of image element access
-				/// according to the data.image.order parameter
-				data.image.compute_steps();
-			}
-		}
+		/// @brief Initialise transfer and backprop functions.
+		void init();
 
 		friend class Cortex::Task;
 	};

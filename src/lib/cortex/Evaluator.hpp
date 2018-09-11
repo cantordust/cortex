@@ -10,18 +10,25 @@ namespace Cortex
 
 	protected:
 
-		/// Input matrix
-		Mat input;
+		struct Layer
+		{
+			/// Synaptic weights (regular layers) or
+			/// filters (convolutional layers).
+			Mat weights;
 
-		/// Synaptic weights (regular layers) or
-		/// filters (convolutional layers).
-		Mat weights;
+			/// Input matrix
+			Mat input;
 
-		/// Output matrix
-		Mat output;
+			/// Output matrix
+			Mat output;
 
-		/// Gradient matrix.
-		Mat gradient;
+			/// Gradient matrix.
+			Mat gradient;
+
+			Layer(const uint _nodes);
+		};
+
+		std::vector<Layer> layers;
 
 		/// Receptive field.
 		RField rfield;
@@ -30,6 +37,12 @@ namespace Cortex
 		Spike::Scheduler scheduler;
 
 	public:
+
+		///=====================================
+		/// Constructor and destructor
+		///=====================================
+
+		Evaluator();
 
 		///=====================================
 		/// Structural operations
@@ -50,7 +63,7 @@ namespace Cortex
 
 		/// @brief Evaluate	a single node.
 		/// Used for evaluating spiking networks.
-		void evaluate(const Node& _node);
+		void evaluate(const Spike& _spike);
 
 		/// @brief Extract the output of the network.
 		/// @return A real-valued vector.
