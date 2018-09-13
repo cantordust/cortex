@@ -240,7 +240,7 @@ namespace Cortex
 
 		struct Learning
 		{
-			LearningMode mode = LearningMode::Mutation;
+			TrainingMode mode = TrainingMode::Mutation;
 
 			struct Mutation
 			{
@@ -260,7 +260,7 @@ namespace Cortex
 
 			/// @todo Backprop
 
-		} learning;
+		} training;
 
 		///=====================================
 		/// Fitness
@@ -283,7 +283,7 @@ namespace Cortex
 		struct Task
 		{
 			/// Network evolution mode
-			TaskMode mode = TaskMode::Autonomous;
+			TaskMode mode = TaskMode::Population;
 
 			/// Task type
 			TaskType type = TaskType::Control;
@@ -291,10 +291,10 @@ namespace Cortex
 			/// Number of times to run the experiment.
 			uint runs = 1;
 
-			/// Maximal number of generations.
+			/// Maximal number of epochs.
 			///
-			/// @todo Indefinite evolution.
-			uint generations = 100;
+			/// @todo Indefinite training.
+			uint epochs = 100;
 
 			/// Number of threads to use for network evaluation.
 			uint threads = std::thread::hardware_concurrency();

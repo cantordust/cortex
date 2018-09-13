@@ -168,8 +168,10 @@ namespace Cortex
 		Node* const get_node(const NodeID& _id);
 
 		///=====================================
-		/// Evolution
+		/// Structural changes
 		///=====================================
+
+		void add_layer();
 
 		void erase_link();
 
@@ -203,6 +205,9 @@ namespace Cortex
 		///=====================================
 		/// Evaluation
 		///=====================================
+
+
+		void train();
 
 		/// @brief Evaluate the network.
 		/// @todo Import convolution code.

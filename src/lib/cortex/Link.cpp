@@ -5,10 +5,10 @@
 
 namespace Cortex
 {
-	Link::Element(const LinkType _type)
+	Link::Element(const LinkType _type, const opt<real> _weight)
 		:
 		  type(_type),
-		  weight(conf->link.weight, conf->link.weight.initialise())
+		  weight(conf->link.weight, _weight.is_set() ? _weight() : conf->link.weight.initialise())
 	{}
 
 	Link::Element(const Link& _other)
@@ -27,7 +27,7 @@ namespace Cortex
 	void Link::ltd(const real _dw)
 	{
 		/// Excitatory links are depressed, inhibitory links are potentiated
-		weight.value += _dw * (weight.value >= 0.0 ? - conf->learning.stdp.dp_ratio * weight.value
+		weight.value += _dw * (weight.value >= 0.0 ? - conf->training.stdp.dp_ratio * weight.value
 												   : conf->link.weight.lbound - weight.value);
 	}
 

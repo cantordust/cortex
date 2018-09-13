@@ -113,7 +113,7 @@ namespace Cortex
 		///=====================================
 
 		/// @brief Add a new link of type @p _lt
-		bool add_link(Node* const _src, const LinkType _lt = LinkType::Undef);
+		bool add_link(Node* const _src, const LinkType _lt = LinkType::Undef, const opt<real> _value = nopt);
 
 		/// @brief Replicate a reference link.
 		bool add_link(Node* const _src, const Link& _other);

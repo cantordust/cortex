@@ -33,14 +33,11 @@ namespace Cortex
 		/// success rate, etc.
 		inline static History history;
 
-//		/// Function used for evaluation / training.
-//		inline static EvalFunction train;
+		///=====================================
+		/// Evaluation function
+		///=====================================
 
-//		/// Function used for generalisation.
-//		inline static EvalFunction dev;
-
-//		/// Function used for testing the solution.
-//		inline static EvalFunction test;
+		inline static std::function<void(const NetPtr _net)> evaluate;
 
 	public:
 
@@ -65,7 +62,7 @@ namespace Cortex
 		///=====================================
 
 		/// @brief Set up the task
-		static void setup(int _argc, char*_argv[]);
+		static void setup(int _argc, char*_argv[], std::function<void(const NetPtr)> _evaluate);
 
 		/// @brief Run the experiment
 		static void execute();
@@ -77,12 +74,6 @@ namespace Cortex
 
 		/// @brief Mark the task as solved by net @p _net
 		static bool is_solved(const NetPtr _net = nullptr, const bool _reset = false);
-
-		///=====================================
-		/// Evaluation functions
-		///=====================================
-
-		static void evaluate(const NetPtr _net);
 
 		friend class Env;
 		friend class Net;

@@ -165,7 +165,7 @@ namespace Cortex
 	/// Mutation
 	///=====================================
 
-	bool Node::add_link(Node* const _src, const LinkType _lt)
+	bool Node::add_link(Node* const _src, const LinkType _lt, const opt<real> _value)
 	{
 		if (!_src || is_key(sources, _src))
 		{

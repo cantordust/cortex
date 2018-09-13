@@ -172,13 +172,13 @@ namespace Cortex
 		JLOAD(root, species.max.count);
 
 		///=================
-		/// Learning
+		/// Training
 		///=================
 
-		JLOAD(root, learning.mode);
-		JLOAD(root, learning.mutation.scale);
-		JLOAD(root, learning.stdp.rate);
-		JLOAD(root, learning.stdp.dp_ratio);
+		JLOAD(root, training.mode);
+		JLOAD(root, training.mutation.scale);
+		JLOAD(root, training.stdp.rate);
+		JLOAD(root, training.stdp.dp_ratio);
 
 		///=================
 		/// Fitness
@@ -193,7 +193,7 @@ namespace Cortex
 		JLOAD(root, task.mode);
 		JLOAD(root, task.type);
 		JLOAD(root, task.runs);
-		JLOAD(root, task.generations);
+		JLOAD(root, task.epochs);
 		JLOAD(root, task.threads);
 
 		///=================
@@ -262,13 +262,13 @@ namespace Cortex
 		JSAVE(root, species.max.count);
 
 		///=================
-		/// Learning
+		/// Training
 		///=================
 
-		JSAVE(root, learning.mode);
-		JSAVE(root, learning.mutation.scale);
-		JSAVE(root, learning.stdp.rate);
-		JSAVE(root, learning.stdp.dp_ratio);
+		JSAVE(root, training.mode);
+		JSAVE(root, training.mutation.scale);
+		JSAVE(root, training.stdp.rate);
+		JSAVE(root, training.stdp.dp_ratio);
 
 		///=================
 		/// Fitness
@@ -283,7 +283,7 @@ namespace Cortex
 		JSAVE(root, task.mode);
 		JSAVE(root, task.type);
 		JSAVE(root, task.runs);
-		JSAVE(root, task.generations);
+		JSAVE(root, task.epochs);
 		JSAVE(root, task.threads);
 
 		///=================
@@ -381,13 +381,13 @@ namespace Cortex
 		/// Learning
 		///=================
 
-		if (learning.mode == LearningMode::Mutation)
+		if (training.mode == TrainingMode::Mutation)
 		{
-			check(learning.mutation.scale > 0.0 && learning.mutation.scale < 1.0,  "[Learning] Mutation SD scale must be > 0 and < 1");
+			check(training.mutation.scale > 0.0 && training.mutation.scale < 1.0,  "[Learning] Mutation SD scale must be > 0 and < 1");
 		}
-		if (learning.mode == LearningMode::STDP)
+		if (training.mode == TrainingMode::STDP)
 		{
-			check(learning.stdp.rate > 0.0 && learning.stdp.rate < 1.0,  "[Learning] STDP learning rate must be > 0 and < 1");
+			check(training.stdp.rate > 0.0 && training.stdp.rate < 1.0,  "[Learning] STDP learning rate must be > 0 and < 1");
 		}
 
 		///=================
@@ -401,7 +401,7 @@ namespace Cortex
 		///=================
 
 		check(task.runs > 0, "[Task] Number of runs must be > 0");
-		check(task.generations > 0, "[Task] Max. number of epochs must be > 0");
+		check(task.epochs > 0, "[Task] Max. number of epochs must be > 0");
 		check(task.threads > 0, "[Task] Number of threads must be > 0");
 
 		///=================
@@ -583,12 +583,12 @@ namespace Cortex
 		_os << cat("Learning")
 			<< "\nMode: " << _conf.mode;
 
-		if (_conf.mode == LearningMode::Mutation)
+		if (_conf.mode == TrainingMode::Mutation)
 		{
 			_os << "\nSD scaling factor: " << _conf.mutation.scale;
 		}
 
-		if (_conf.mode == LearningMode::STDP)
+		if (_conf.mode == TrainingMode::STDP)
 		{
 			_os << "\nLearning rate: " << _conf.stdp.rate
 				<< "\nD/P ratio: " << _conf.stdp.dp_ratio;
@@ -618,7 +618,7 @@ namespace Cortex
 		_os << cat("Task")
 			<< "\nTask mode: " << _conf.mode
 			<< "\nRuns: " << _conf.runs
-			<< "\nEpochs: " << _conf.generations
+			<< "\nEpochs: " << _conf.epochs
 			<< "\nThreads: " << _conf.threads;
 
 		return _os;
@@ -667,7 +667,7 @@ namespace Cortex
 			<< _conf.node
 			<< _conf.link
 			<< _conf.species
-			<< _conf.learning
+			<< _conf.training
 			<< _conf.fitness
 			<< _conf.task
 			<< _conf.data;

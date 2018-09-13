@@ -15,7 +15,8 @@ namespace Cortex
 	Net::Net(const Genome& _genome)
 		:
 		  id(get_id()),
-		  species(Env::get_species(_genome))
+		  species(Env::get_species(_genome)),
+		  evaluator(*this)
 	{
 		/// Add the network to its species.
 		require(species, "Net::Net(const Genome& _genome): Invalid species.");
@@ -36,7 +37,8 @@ namespace Cortex
 	Net::Net(Net* const _parent1, Net* const _parent2)
 		:
 		  id(get_id()),
-		  species(_parent1->species) /// It doesn't matter which parent we pick for the species.
+		  species(_parent1->species), /// It doesn't matter which parent we pick for the species.
+		  evaluator(*this)
 	{
 		require(species, "Net::Net(Net* const, Net* const): Invalid species.");
 
@@ -255,8 +257,13 @@ namespace Cortex
 				: nullptr);
 	}
 
+	void Net::add_layer()
+	{
+
+	}
+
 	///=====================================
-	/// Evolution
+	/// Structural changes
 	///=====================================
 
 //	void Net::add_link()
@@ -623,7 +630,7 @@ namespace Cortex
 
 	void Net::evaluate(const Sample& _sample)
 	{
-
+		evaluator.evaluate(_sample);
 	}
 
 	///=====================================

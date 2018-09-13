@@ -24,7 +24,7 @@ namespace Cortex
 	public:
 
 		/// @brief Constructor with explicit link type.
-		Element(const LinkType _type);
+		Element(const LinkType _type, const opt<real> _weight = nopt);
 
 		/// @brief Copy constructor.
 		Element(const Link& _other);

@@ -10,16 +10,18 @@ namespace Cortex
 
 	protected:
 
+		Net& net;
+
 		struct Layer
 		{
 			/// Synaptic weights (regular layers) or
 			/// filters (convolutional layers).
 			Mat weights;
 
-			/// Input matrix
+			/// Input matrix.
 			Mat input;
 
-			/// Output matrix
+			/// Output matrix.
 			Mat output;
 
 			/// Gradient matrix.
@@ -42,7 +44,7 @@ namespace Cortex
 		/// Constructor and destructor
 		///=====================================
 
-		Evaluator();
+		Evaluator(Net& _net);
 
 		///=====================================
 		/// Structural operations

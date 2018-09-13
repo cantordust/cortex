@@ -2,16 +2,13 @@ cmake_minimum_required(VERSION 3.8.2)
 
 project(cortex CXX)
 
-# Select a custom C++ compiler.
+# Indicate that we should use a custom C++ compiler.
 #
-# Default: /usr/bin/clang++
+# Default: System C++ compiler
 #
 # NOTE: C++17 support required
-#
-# TODO: Test other compilers (msvc, mingw, etc.)
 
-set(custom_compiler /usr/bin/clang++)
-#set(custom_compiler /usr/bin/g++)
+# set(custom_compiler /usr/bin/clang++)
 
 # Select build type
 #
@@ -22,7 +19,8 @@ set(custom_compiler /usr/bin/clang++)
 set(build_type Debug)
 
 # Use the Armadillo BLAS library
-set(use_blas OFF)
+# Possible values: ON | OFF
+set(use_blas ON)
 
 # Root directory
 set(root_dir "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Root directory")

@@ -5,8 +5,6 @@
 #include "cxxopts.hpp"
 #include "json.hpp"
 
-/// @todo Make this optional or bundle Armadillo code.
-#include "armadillo"
 
 /// @todo Update threadpool to the latest version.
 #include "threadpool.hpp"
@@ -36,6 +34,9 @@
 #include <random>
 #include <chrono>
 #include <cctype>
+
+/// @todo Make this optional or bundle Armadillo code.
+#include <armadillo>
 
 namespace Cortex
 {

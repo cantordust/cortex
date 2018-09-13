@@ -31,7 +31,7 @@ namespace Cortex
 	/// Setup and execution
 	///=====================================
 
-	void Task::setup(int _argc, char* _argv[])
+	void Task::setup(int _argc, char* _argv[], std::function<void(const NetPtr)> _evaluate)
 	{
 		/// Ensure that we have a single task
 		static bool called(false);
@@ -69,6 +69,9 @@ namespace Cortex
 
 		/// Load the configuration
 		conf->load();
+
+		/// Store the evaluate function.
+		evaluate = _evaluate;
 
 		/// Seed the random number generator
 		seed_rng();
@@ -110,8 +113,8 @@ namespace Cortex
 				/// Add a new run to the history.
 				Task::history.new_run();
 
-				/// Generation counter
-				uint gen(0);
+				/// Epoch counter.
+				uint epoch(0);
 
 				/// Store the number of evaluations from the last run.
 				/// The number of evaluations for this run is computed
@@ -119,12 +122,12 @@ namespace Cortex
 				/// of completed tasks in the threadpool.
 				uint evals(threadpool.tasks_completed());
 
-				while (++gen <= conf->task.generations)
+				while (++epoch <= conf->task.epochs)
 				{
 //					/// Switch to learning phase
 					Env::phase = Phase::Learning;
 
-					report << "==========[ Generation" << gen << "|" << Env::phase << "phase ]==========\n";
+					report << "==========[ Generation" << epoch << "|" << Env::phase << "phase ]==========\n";
 
 //					/// Evaluate the population
 //					for (const auto& net : Env::nets)
@@ -144,7 +147,7 @@ namespace Cortex
 					/// Switch to evolution phase
 					Env::phase = Phase::Evolution;
 
-					report << "==========[ Generation" << gen << "|" << Env::phase << "phase ]==========\n";
+					report << "==========[ Generation" << epoch << "|" << Env::phase << "phase ]==========\n";
 
 					/// Evolve the environment
 //					Env::evolve();
@@ -161,7 +164,7 @@ namespace Cortex
 
 				/// Update the history.
 				history.add(Stat::SuccessRate, is_solved() ? 1 : 0);
-				history.add(Stat::Generations, gen - 1);
+				history.add(Stat::Generations, epoch - 1);
 				history.add(Stat::Evaluations, threadpool.tasks_completed() - evals);
 			}
 		};
@@ -196,4 +199,9 @@ namespace Cortex
 
 		return solved;
 	}
+
+//	void Task::evaluate(const NetPtr _net)
+//	{
+
+//	}
 }

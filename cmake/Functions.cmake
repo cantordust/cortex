@@ -33,7 +33,14 @@ function(setup_lib)
 	file(GLOB_RECURSE lib_src ${lib_src_dir}/*.cpp ${lib_src_dir}/*.hpp)
 
 	add_library(${lib_name} SHARED ${lib_src})
-	target_link_libraries(${lib_name} ${CMAKE_THREAD_LIBS_INIT})
+
+	set(link_libs ${CMAKE_THREAD_LIBS_INIT})
+
+	if (${use_blas})
+		list(APPEND ${link_libs} ${ARMADILLO_LIBRARIES})
+	endif()
+
+	target_link_libraries(${lib_name} ${link_libs})
 	set_target_properties(${lib_name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${lib_dir})
 	target_include_directories(
 		${lib_name}
@@ -41,6 +48,7 @@ function(setup_lib)
 		${lib_header_dirs}
 		${dep_header_dirs}
 		)
+
 #	get_property(inc_dirs TARGET ${lib_name} PROPERTY INCLUDE_DIRECTORIES)
 #	foreach(incdir ${inc_dirs})
 #		msg("Included dir: ${incdir}")

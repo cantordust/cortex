@@ -129,8 +129,13 @@ namespace Cortex
 	}
 
 	///=====================================
-	/// Evolution
+	/// Structural changes
 	///=====================================
+
+	void Layer::add_node(Node* const _src, const opt<real> _weight)
+	{
+//		nodes.emplace_back(mkup<Node>(*this), _weight);
+	}
 
 	void Layer::mutate(const LayerConf& _lc)
 	{

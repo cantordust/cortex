@@ -23,10 +23,6 @@ namespace Cortex
 		/// Nodes belonging to this layer.
 		std::vector<NodePtr> nodes;
 
-		/// Output nodes.
-		/// Only used in convolutional layers.
-		std::vector<NodePtr> output;
-
 	public:
 
 		///=====================================
@@ -87,8 +83,10 @@ namespace Cortex
 		Coordinates size() const;
 
 		///=====================================
-		/// Evolution
+		/// Structural changes
 		///=====================================
+
+		void add_node(Node* const _src, const opt<real> _weight);
 
 		/// @brief Layer mutation (mutated configuration)
 		void mutate(const LayerConf& _lc);

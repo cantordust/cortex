@@ -2,7 +2,7 @@
 
 int main( int argc, char* argv[] )
 {
-	Cortex::Task::setup(argc, argv);
+	Cortex::Task::setup(argc, argv, &Dummy::evaluate);
 
 //	dlog(Task::args.help());
 

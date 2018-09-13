@@ -9,8 +9,7 @@ namespace Dummy
 
 	bool setup();
 
-	template<Stage _stage>
-	void eval(const NetPtr _net);
+	void evaluate(const NetPtr _net);
 }
 
 #endif // DUMMY_EVAL_HPP

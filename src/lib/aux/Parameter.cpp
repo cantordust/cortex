@@ -4,8 +4,8 @@ namespace Cortex
 {
 	void Parameter::Mutation::scale_sd(const Action _act)
 	{
-		sd *= (_act == Action::Dec) ? (1.0 - conf->learning.mutation.scale)
-									: (1.0 + conf->learning.mutation.scale);
+		sd *= (_act == Action::Dec) ? (1.0 - conf->training.mutation.scale)
+									: (1.0 + conf->training.mutation.scale);
 	}
 
 	void Parameter::Mutation::set_sd(const real _new_sd)

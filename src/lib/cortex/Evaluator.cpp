@@ -36,9 +36,10 @@ namespace Cortex
 	/// Constructor and destructor
 	///=====================================
 
-	Evaluator::Evaluator()
-		:
-		  rfield(*this)
+	Evaluator::Evaluator(Net& _net)
+	    :
+	      net(_net),
+	      rfield(*this)
 	{}
 
 	///=====================================
@@ -50,10 +51,40 @@ namespace Cortex
 		for (uint l = 0; l < _net.layers.size(); ++l)
 		{
 			layers.emplace_back(_net.layers[l]->lconf.nodes);
-			if (l > 0)
+			if (l == 0)
+			{
+				switch(_net.layers[l]->lconf.type)
+				{
+				case LayerType::Regular:
+					layers.back().input	= Mat(conf->net.init.layers.front().nodes, 1, arma::fill::zeros);
+					break;
+
+				case LayerType::Convolutional:
+					layers.back().input	= Mat(conf->net.init.layers.front().nodes, 1, arma::fill::zeros);
+					break;
+
+				default:
+					break;
+				}
+			}
+			else
 			{
 				/// @todo Populate weights
-				layers.back().weights = Mat(layers.back().output.n_rows, layers[layers.size() - 2].output.n_rows, arma::fill::zeros);
+				switch(_net.layers[l]->lconf.type)
+				{
+				case LayerType::Regular:
+					/// @todo Populate weights
+					layers.back().weights = Mat(layers.back().output.n_rows, layers[layers.size() - 2].output.n_rows, arma::fill::zeros);
+					break;
+
+				case LayerType::Convolutional:
+
+					layers.back().weights = Mat(layers.back().output.n_rows, layers[layers.size() - 2].output.n_rows, arma::fill::zeros);
+					break;
+
+				default:
+					break;
+				}
 			}
 		}
 	}
@@ -76,7 +107,7 @@ namespace Cortex
 			/// of the current spike, which amounts to the
 			/// weight of the corresponding synapse.
 			tgt->potential.update(tgt->potential.value * std::exp((tgt->last.in - src.last.out) / tgt->tau.value) +
-								  tgt->sources.at(_spike.node).weight.value);
+			                      tgt->sources.at(_spike.node).weight.value);
 
 			/// Update the timing of the last input.
 			tgt->last.in = src.last.out;
@@ -95,13 +126,13 @@ namespace Cortex
 				scheduler.emplace(tgt);
 
 				/// STDP
-				if (conf->learning.mode == LearningMode::STDP)
+				if (conf->training.mode == TrainingMode::STDP)
 				{
 					/// Apply LTP to all links from source nodes
 					for (auto& src : tgt->sources)
 					{
 						/// Both excitatory and inhibitory links are potentiated
-						src.second.ltp((conf->learning.stdp.rate * std::exp( - (tgt->last.out - src.first->last.out) / tgt->tau.value )));
+						src.second.ltp((conf->training.stdp.rate * std::exp( - (tgt->last.out - src.first->last.out) / tgt->tau.value )));
 					}
 				}
 

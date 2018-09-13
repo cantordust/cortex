@@ -31,6 +31,7 @@ namespace Cortex
 			hmap<uint, std::vector<SampleRef>> label;
 		} by;
 
+
 	public:
 
 		/// @brief Get a random sample.

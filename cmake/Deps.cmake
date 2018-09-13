@@ -3,25 +3,12 @@ include(ExternalProject)
 # Parallel network evaluation using threads
 find_package(Threads REQUIRED)
 
-include_directories(${dep_dir}/armadillo/include)
+if (use_blas)
+	find_package(Armadillo REQUIRED)
 
-#if (${use_blas})
-
-#	set(arma_dir ${dep_dir}/armadillo)
-
-#	msg("Using BLAS")
-#	msg("Armadillo dir: ${arma_dir}")
-
-#	ExternalProject_Add(
-#		arma_local
-#		PREFIX ${arma_dir}
-#		TMP_DIR ${arma_dir}/tmp
-#		GIT_REPOSITORY
-#		SOURCE_DIR ${arma_dir}
-#		BUILD_IN_SOURCE 1
-#		INSTALL_NAME_DIR ${lib_dir}
-#	)
-#endif()
+	msg("Using BLAS")
+	msg("Armadillo include file found under: ${ARMADILLO_INCLUDE_DIRS}")
+endif()
 
 #if (NOT DEFINED download_single_header_libs)
 #	msg("Downloading single-header libraries...")

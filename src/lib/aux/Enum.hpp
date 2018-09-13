@@ -174,7 +174,8 @@ namespace Cortex
 	///=====================================
 
 	ENUM("Task mode", TaskMode,
-		 Autonomous,
+		 Population,
+		 Single,
 		 Interactive
 		 );
 
@@ -236,11 +237,11 @@ namespace Cortex
 		 );
 
 	///=====================================
-	/// Mutation types.
+	/// Training mode.
 	///=====================================
 
-	ENUM("Learning mode", LearningMode,
-//		 Backprop,
+	ENUM("Training mode", TrainingMode,
+		 Backprop,
 		 Mutation,
 		 STDP
 		 );
@@ -340,9 +341,9 @@ namespace Cortex
 	ENUM("Layer type", LayerType,
 		 Regular,
 		 Convolutional,
-		 Pooling,
-		 Softmax,
-		 Loss
+//		 Pooling,
+//		 Softmax,
+//		 Loss
 		 );
 
 	///=====================================
