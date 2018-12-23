@@ -2,96 +2,68 @@ cmake_minimum_required(VERSION 3.8.2)
 
 project(cortex CXX)
 
-# Indicate that we should use a custom C++ compiler.
-#
-# Default: System C++ compiler
-#
-# NOTE: C++17 support required
+#####################
+# Compilation options
+#####################
 
-# set(custom_compiler /usr/bin/clang++)
-
-# Select build type
-#
-# Recognised options: Release | Debug | RelWithDebInfo
-#
-# Default: Debug
-
+# Build type
 set(build_type Debug)
 
-# Use the Armadillo BLAS library
-# Possible values: ON | OFF
-set(use_blas ON)
+# Custom compiler path
+# NOTE: C++17 support required
+# set(use_compiler /usr/bin/g++)
 
-# Root directory
-set(root_dir "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Root directory")
+###################
+# Optional bindings
+###################
 
-# Root directory for auxiliary CMake files
-set(cmake_aux_dir "${root_dir}/cmake" CACHE PATH "Root directory for auxiliary CMake files")
+set(generate_python_bindings ON CACHE BOOL "Generate Python bindings")
 
-# Directory containing sources
-set(src_dir "${root_dir}/src" CACHE PATH "Root directory for source files")
-
-# Root directory for library sources
-set(lib_src_dir "${src_dir}/lib" CACHE PATH "Root directory for library sources")
-
-# Root directory for executable sources
-set(bin_src_dir "${src_dir}/bin" CACHE PATH "Root directory for executable sources")
-
-# Root directory for dependencies
-set(dep_dir "${root_dir}/dep" CACHE PATH "Root directory for dependencies")
-
-# Root directory for resources
-set(res_dir "${root_dir}/res" CACHE PATH "Root directory for resources")
-
-# Root directory for libraries
-set(lib_dir "${root_dir}/lib")
-
-# Root directory for binaries
-set(bin_dir "${root_dir}/bin")
-
-# System includes
-set(sys_inc_dir "/usr/include")
-
-# Name of the configuration template file
-set(config_template "config.json")
-
-# Library name
-set(lib_name "cortex")
+set(use_libtorch OFF CACHE BOOL "Use LibTorch")
 
 #########################
 # Auxiliary CMake modules
 #########################
 
-# Various functions
-include("${cmake_aux_dir}/Functions.cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+include(Paths)
+include(Functions)
+include(Dependencies)
+include(CompilerOptions)
 
-# Dependencies
-include("${cmake_aux_dir}/Deps.cmake")
+##############
+# Header files
+##############
 
-# Compiler options
-include("${cmake_aux_dir}/CompilerOptions.cmake")
-
-#######################################
-# Gather all header files for inclusion
-#######################################
+# Find headers dependency headers
+find_headers(dep_header_dirs ${dep_src_root_dir})
 
 # Directories containing library headers
-header_dirs(lib_header_dirs ${lib_src_dir})
+find_headers(lib_header_dirs ${lib_src_root_dir})
 
-# Directories containing dependency headers
-header_dirs(dep_header_dirs ${dep_dir})
+###########
+# Libraries
+###########
 
-################
-# Cortex library
-################
-
-setup_lib()
+setup_lib(${core_lib_name})
 
 ##########
 # Binaries
 ##########
 
-setup_bin(dummy)
+setup_bin(test)
 #setup_bin(xor)
 #setup_bin(wdbc)
 #setup_bin(cart_pole)
+
+############
+# Unit tests
+############
+
+#setup_test(stat)
+
+###############
+# Documentation
+###############
+
+#setup_doc()

@@ -6,10 +6,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(default_compiler /usr/bin/clang++)
 set(default_build_type Release)
 
-if (custom_compiler)
+if (use_compiler)
 	unset(CMAKE_CXX_COMPILER)
 	unset(CMAKE_CXX_COMPILER CACHE)
-	set(CMAKE_CXX_COMPILER ${custom_compiler} CACHE STRING "Custom compiler" FORCE)
+	set(CMAKE_CXX_COMPILER ${use_compiler} CACHE STRING "Custom compiler" FORCE)
 endif()
 
 if(build_type)
@@ -22,15 +22,15 @@ if(build_type)
 	set(CMAKE_BUILD_TYPE ${build_type} CACHE STRING "Build type (Debug | Release | RelWithDebInfo)" FORCE)
 endif()
 
-if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_RELEASE})
-elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
-elseif(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-	set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
-endif()
-
 msg("Build type: ${CMAKE_BUILD_TYPE}")
 msg("Compiler: ${CMAKE_CXX_COMPILER}")
-msg("Compiler flags: ${CMAKE_CXX_FLAGS}")
+
+if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+	msg("Compiler flags: ${CMAKE_CXX_FLAGS_RELEASE}")
+elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+	msg("Compiler flags: ${CMAKE_CXX_FLAGS_DEBUG}")
+elseif(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+	msg("Compiler flags: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+endif()
+
 

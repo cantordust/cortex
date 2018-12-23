@@ -27,7 +27,7 @@ namespace WDBC
 			return false;
 		}
 
-		conf->env.evo.fit.tgt = 1.0;
+		conf.env.evo.fit.tgt = 1.0;
 		conf.validate();
 
 		return true;

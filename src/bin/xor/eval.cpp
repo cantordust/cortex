@@ -67,16 +67,16 @@ namespace Xor
 			}
 		}
 
-		conf->env.evo.fit.tgt = 4.0;
+		conf.env.evo.fit.tgt = 4.0;
 
-		if (conf->net.node.tf.at(NodeType::Output).size() == 0 ||
-		    conf->net.node.tf.at(NodeType::Output).size() > 1)
+		if (conf.net.node.tf.at(NodeType::Output).size() == 0 ||
+		    conf.net.node.tf.at(NodeType::Output).size() > 1)
 		{
-			die("Please specify exactly one transfer function at the output nodes.");
+			die("Please specify exactly one activation function at the output nodes.");
 		}
 		else
 		{
-			switch (*conf->net.node.tf.at(NodeType::Output).begin())
+			switch (*conf.net.node.tf.at(NodeType::Output).begin())
 			{
 			case TF::Tanh:
 				boundary = 0.0;
@@ -87,7 +87,7 @@ namespace Xor
 				break;
 
 			default:
-				die("Invalid transfer function (", *conf->net.node.tf.at(NodeType::Output).begin(), ") at the output");
+				die("Invalid activation function (", *conf.net.node.tf.at(NodeType::Output).begin(), ") at the output");
 			}
 		}
 

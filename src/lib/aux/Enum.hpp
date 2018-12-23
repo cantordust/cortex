@@ -6,6 +6,44 @@
 namespace Cortex
 {
 	///=============================================================================
+	/// This macro expands to define an enum class and the some associated helpers,
+	/// such as class name, a value - string LUT, a description, an automatic
+	/// undefined value (Undef) and JSON loaders.
+	///
+	/// @todo Replace with reflexpr.
+	///=============================================================================
+
+#ifdef GENERATE_PYTHON_BINDINGS
+
+	namespace PyBindEnum
+	{
+		PYBIND11_MODULE(Enum, module) {}
+		inline py::module pyEnum{py::module::import("Enum")};
+	}
+
+#endif
+
+#define PYENUM(EnumName) \
+	namespace PyBindEnum \
+	{ \
+		py::enum_<EnumName> EnumName (pyEnum, #EnumName); \
+	} \
+
+//	//#define PYENUMVAL(EnumName) \
+//	//	Py##EnumName.value(#EnumVal, EnumName::EnumVal)
+
+#define ENUM(Desc, EnumName, ...) \
+	enum class EnumName : uchar { Undef = 0, __VA_ARGS__ }; \
+	template<> inline const std::string desc<EnumName> = Desc; \
+	template<> inline const std::string name<EnumName> = #EnumName; \
+	template<> inline const EnumName undef<EnumName> = EnumName::Undef; \
+	template<> inline const emap<EnumName> values<EnumName> = enum_gen<EnumName>(#EnumName, #__VA_ARGS__); \
+	inline void from_json(const json& _j, EnumName& _e) { _e = to_enum<EnumName>(_j.get<std::string>()); } \
+	inline void to_json(json& _j, const EnumName& _e) { _j = to_str<EnumName>(_e); } \
+	inline os& operator << (os& _os, const EnumName _e) noexcept { return _os << to_str<EnumName>(_e); } \
+	PYENUM(EnumName)
+
+	///=============================================================================
 	///	Helpers for storing, checking and printing enum types.
 	///=============================================================================
 
@@ -146,38 +184,10 @@ namespace Cortex
 		return name<E> + "::Undef";
 	}
 
-	/// This macro expands to define an enum class and
-	/// the some associated helpers, such as class name,
-	/// a value - string LUT, a description, an automatic
-	/// undefined value (Undef) and JSON loaders.
-	///
-	/// @todo Replace with reflexpr.
-#define ENUM(Desc, EnumName, ...) \
-	enum class EnumName : uchar { Undef = 0, __VA_ARGS__ }; \
-	template<> inline const std::string desc<EnumName> = Desc; \
-	template<> inline const std::string name<EnumName> = #EnumName; \
-	template<> inline const EnumName undef<EnumName> = EnumName::Undef; \
-	template<> inline const emap<EnumName> values<EnumName> = enum_gen<EnumName>(#EnumName, #__VA_ARGS__); \
-	inline void from_json(const json& _j, EnumName& _e) { _e = to_enum<EnumName>(_j.get<std::string>()); } \
-	inline void to_json(json& _j, const EnumName& _e) { _j = to_str<EnumName>(_e); } \
-	inline os& operator << (os& _os, const EnumName _e) noexcept { return _os << to_str<EnumName>(_e); } \
-	inline dlog& operator << (dlog& _d, const EnumName _e) noexcept { return _d << to_str<EnumName>(_e); }
-
-	///=====================================
+	///=============================================================================
 	/// Enum classes.
-	/// These are used as template arguments
-	///	as well as in dispatch functions.
-	///=====================================
-
-	///=====================================
-	/// Task modes.
-	///=====================================
-
-	ENUM("Task mode", TaskMode,
-		 Population,
-		 Single,
-		 Interactive
-		 );
+	/// These are used as template arguments as well as in dispatch functions.
+	///=============================================================================
 
 	///=====================================
 	/// Task types.
@@ -191,14 +201,46 @@ namespace Cortex
 		 );
 
 	///=====================================
+	/// Environment type.
+	///=====================================
+
+	ENUM("Environment type", EnvType,
+		 Population,
+		 Single,
+		 Interactive
+		 );
+
+	///=====================================
 	/// Network types.
 	///=====================================
 
 	ENUM("Network type", NetType,
 		 Classical,
-		 Spiking,
-		 Convolutional
+		 Convolutional,
+		 Spiking
 		 );
+
+	///=====================================
+	/// Layer types.
+	///=====================================
+
+	ENUM("Layer type", LayerType,
+		 Regular,
+		 Convolutional,
+		 Pooling,
+		 Softmax,
+//		 LSTM,
+		 Loss
+		 );
+
+//	///=====================================
+//	/// Node types.
+//	///=====================================
+
+//	ENUM("Node type", NodeType,
+//		 Regular,
+//		 Filter
+//		 );
 
 	///=====================================
 	/// Link types.
@@ -212,18 +254,43 @@ namespace Cortex
 		 );
 
 	///=====================================
-	/// Transfer functions.
+	/// Sensor types.
+	///=====================================
+
+	ENUM("Sensor type", SensorType,
+		 Direct,
+		 Adaptive,
+		 Retinotopic,
+		 Gaussian,
+		 Spatiotemporal
+		 );
+
+	///=====================================
+	/// Fan-in / fan-out size.
+	/// Used for indicating how many links
+	/// should be created when connecting
+	/// a (new) node to an exisitng network.
+	///=====================================
+
+	ENUM("Fan size", FanSize,
+		 One,
+		 All,
+		 Random
+		 );
+
+	///=====================================
+	/// Function types.
 	/// These also work as standalone functions.
 	/// @todo More functions.
 	///=====================================
 
-	ENUM("Function type", Func,
+	ENUM("Function type", FuncType,
 		 Abs,
+		 Sin,
 		 Cos,
 		 Gaussian,
 		 Logistic,
 		 ReLU,
-		 Sin,
 		 Tanh
 		 );
 
@@ -237,23 +304,26 @@ namespace Cortex
 		 );
 
 	///=====================================
-	/// Training mode.
+	/// Learning mode.
 	///=====================================
 
-	ENUM("Training mode", TrainingMode,
+	ENUM("Learning mode", LearningMode,
 		 Backprop,
 		 Mutation,
 		 STDP
 		 );
 
 	///=====================================
-	/// Network element types.
+	/// Object types.
 	///=====================================
 
-	ENUM("Network element type", ElemType,
+	ENUM("Element type", ElemType,
+		 Genome,
+		 Net,
+		 Layer,
 		 Node,
 		 Link,
-		 Layer
+//		 Sensor
 		 );
 
 	///=====================================
@@ -266,16 +336,12 @@ namespace Cortex
 		 );
 
 	///=====================================
-	/// The following two types are used
-	/// for values which can increase,
-	/// decrease or stay the same.
-	/// These are used to keep track of
-	/// changes and decide which mutations
-	/// have been beneficial.
-	///=====================================
-
-	///=====================================
 	/// Action (used in parameter mutation).
+	/// Used for values which can increase,
+	/// decrease or stay the same.
+	/// Paired with @enum Effect to keep
+	/// track of changes and decide which
+	///	mutations have been beneficial.
 	///=====================================
 
 	ENUM("Action", Action,
@@ -302,17 +368,6 @@ namespace Cortex
 		 );
 
 	///=====================================
-	/// Receptive field types.
-	///=====================================
-
-	ENUM("Receptive field type", RFType,
-		 Direct,
-		 Adaptive,
-		 Gaussian,
-		 Spatiotemporal
-		 );
-
-	///=====================================
 	/// Number distribution types.
 	///=====================================
 
@@ -321,7 +376,8 @@ namespace Cortex
 		 Uniform,
 		 Normal,
 		 PosNormal,
-		 NegNormal
+		 NegNormal,
+//		 Poisson
 		 );
 
 	///=====================================
@@ -335,22 +391,10 @@ namespace Cortex
 		 );
 
 	///=====================================
-	/// Layer types.
+	/// Input data types.
 	///=====================================
 
-	ENUM("Layer type", LayerType,
-		 Regular,
-		 Convolutional,
-//		 Pooling,
-//		 Softmax,
-//		 Loss
-		 );
-
-	///=====================================
-	/// Data types.
-	///=====================================
-
-	ENUM("Data type", DataType,
+	ENUM("Input data type", InputType,
 		 RealValued,
 		 TimeSeries,
 		 Image
@@ -363,13 +407,14 @@ namespace Cortex
 
 	ENUM("Statistics", Stat,
 		 SuccessRate,
-		 Generations,
+		 Epochs,
 		 Evaluations,
 		 Species,
 		 Nets,
 		 Layers,
 		 Nodes,
-		 Links
+		 Links,
+//		 Sensors
 		 );
 
 	///=====================================
@@ -379,16 +424,6 @@ namespace Cortex
 	ENUM("Moving average type", MAType,
 		 Exponential,
 		 Simple
-		 );
-
-	///=====================================
-	/// Generic dimension labels.
-	///=====================================
-
-	ENUM("Dimension", Dim,
-		 Depth,
-		 Height,
-		 Width
 		 );
 
 	///=====================================
@@ -410,10 +445,22 @@ namespace Cortex
 	///	Error codes. Used for exception handling.
 	///=============================================================================
 
-	ENUM("Error type", Error,
+	ENUM("Error type", ErrorType,
 		 OutOfRange,
 		 InvalidValue
 		 );
+
+	///=============================================================================
+	///	Configuration status
+	///=============================================================================
+
+	ENUM("Configuration status", ConfigStatus,
+		 Loaded,
+		 Saved,
+		 Generated
+		 );
+
+
 }
 
 #endif // CORTEX_ENUM_HPP

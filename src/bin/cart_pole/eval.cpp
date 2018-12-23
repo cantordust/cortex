@@ -345,10 +345,10 @@ namespace CartPole
 
 		// Compute target fitness
 //		_config.fit.tgt = Max::steps * (1 + Gen::envs.size());
-		conf->fit.tgt = Max::steps * (Gen::tracks.size());
+		conf.fit.tgt = Max::steps * (Gen::tracks.size());
 
 		dlog("Generalisation environments: ", Gen::tracks.size()
-		      , "\nTarget fitness: ", conf->fit.tgt);
+		      , "\nTarget fitness: ", conf.fit.tgt);
 
 		return true;
 	}

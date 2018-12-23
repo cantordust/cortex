@@ -44,7 +44,7 @@ namespace Cortex
 
 		/// @brief Compute the normalised offset
 		/// logistic($\frac{_val - mean}{sd()}$)
-		template<Func f = Func::Logistic>
+		template<FuncType f = FuncType::Logistic>
 		inline real get_offset(const real _val) const
 		{
 //			dlog("Stat::get_offset(", _val, "), mean:", mean, ", sd:", sd());
@@ -125,22 +125,29 @@ namespace Cortex
 
 		/// @brief Compute the normalised offset of the current
 		/// or the provided value.
+		template<FuncType ft = FuncType::Logistic>
 		inline real get_offset() const
 		{
-			return Statistics<ma>::get_offset(value);
+			return Statistics<ma>::get_offset<ft>(value);
 		}
 
 		/// @brief Compute the normalised offset of the current
 		/// or the provided value.
+		template<FuncType ft = FuncType::Logistic>
 		inline real get_offset(const real _value) const
 		{
-			return Statistics<ma>::get_offset(_value);
+			return Statistics<ma>::get_offset<ft>(_value);
 		}
 
 		inline void reset()
 		{
 			value = 0.0;
 			Statistics<ma>::reset();
+		}
+
+		operator real () const noexcept
+		{
+			return value;
 		}
 	};
 

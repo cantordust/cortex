@@ -34,18 +34,18 @@ namespace Cortex
 	/// the positve half of a normal distribution
 	/// centred at 0.
 	/// @param _sd Standard deviation of the distribution.
-	inline real rnd_pos_nd(const real _sd)
+	inline real rnd_pos_nd(const real _mean, const real _sd)
 	{
-		return std::fabs(rnd_nd(0.0, _sd));
+		return std::fabs(rnd_nd(_mean, _sd));
 	}
 
 	/// @brief Returns a random number drawn from
 	/// the negative half of a normal distribution
 	/// centred at 0.
 	/// @param _sd Standard deviation of the distribution.
-	inline real rnd_neg_nd(const real _sd)
+	inline real rnd_neg_nd(const real _mean, const real _sd)
 	{
-		return -std::fabs(rnd_nd(0.0, _sd));
+		return -std::fabs(rnd_nd(_mean, _sd));
 	}
 
 	/// @brief Returns a random floating-point value between @p _min and @p _max.
