@@ -1,4 +1,4 @@
-# Guidelines for contributing to NETL
+# Guidelines for contributing to Cortex
 
 ## Coding style
 

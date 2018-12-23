@@ -8,7 +8,6 @@
 - Interactive operation
 - Include dependencies as submodules
 - [WIP] Python bindings (https://github.com/pybind/pybind11)
-- Julia bindings
 - Documentation
 - Network visualisation / GUI
 	- three.js

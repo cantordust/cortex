@@ -1,12 +1,12 @@
-# NeuroEvolution Template Library (NETL)
+# Cortex neuroevolution platform
 
-NETL is a generic platform for evolving deep learning models. It supports classical and spiking networks and can evolve both the topology and the parameters of the networks.
+Cortex is a generic platform for evolving deep learning models. It supports classical and spiking networks and can evolve both the topology and the parameters of the networks.
 
 ## Development
-NETL is under active development, and the API is not completely stable.
+Cortex is under active development, and the API is not completely stable.
 
-[Licence](Licence.md).
+[Licence](LICENCE.md).
 
-[Guidelines for contributing](Contributing.md).
+[Guidelines for contributing](CONTRIBUTING.md).
 
-[(Partial) ToDo list](ToDo.md).
+[(Partial) TODO list](TODO.md).
